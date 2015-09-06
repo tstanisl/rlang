@@ -29,7 +29,8 @@ def prepare_grammar():
 	import pyparsing as pp
 
 	LBRA, RBRA, SCOLON, LPAR, RPAR, COMMA = [pp.Suppress(c) for c in '{};(),']
-	ASSIGN, QUESTION, COLON = [pp.Suppress(c) for c in '=?:']
+	ASSIGN, QUESTION, COLON, PLUS, MINUS = [pp.Suppress(c) for c in '=?:+-']
+	MUL, DIV, MOD, NOT = [pp.Suppress(c) for c in '*/%!']
 
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
 	dec_digit = pp.Word("123456789", "0123456789")
@@ -37,7 +38,11 @@ def prepare_grammar():
 	bin_digit = pp.Combine(pp.Suppress('0b') + pp.Word('01'), adjacent = True)
 	digit = dec_digit ^ hex_digit ^ bin_digit
 
-	add_expr = digit
+	top_expr = digit
+
+	unr_expr = pp.ZeroOrMore(PLUS ^ MINUS ^ NOT) + top_expr
+	mul_expr = unr_expr + pp.ZeroOrMore((MUL ^ DIV ^ MOD) + unr_expr)
+	add_expr = mul_expr + pp.ZeroOrMore((PLUS ^ MINUS) + mul_expr)
 
 	LT = pp.Suppress("<")
 	LE = pp.Suppress("<=")
