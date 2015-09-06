@@ -1,0 +1,4 @@
+template x () { }
+template y (int a) { }
+template z (int a, struct B b) { }
+
