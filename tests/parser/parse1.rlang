@@ -1,0 +1,18 @@
+int a;
+
+struct A a;
+
+struct
+A
+{
+};
+
+struct A x;
+
+struct A {
+	int x;
+};
+struct B {
+	struct C c;
+	int b;
+};
