@@ -44,6 +44,9 @@ def prepare_grammar():
 	template_decl = extern_mod + TEMPLATE + ident + LPAR + \
 		arg_list + RPAR + contracts_decl + block_stmt
 
+	SEQUENCE = pp.Suppress(pp.Keyword('sequence'))
+	sequence_decl = extern_mod + SEQUENCE + ident + contracts_decl + block_stmt
+
 	STRUCT = pp.Keyword('struct')
 	struct_def = LBRA + pp.Group(pp.ZeroOrMore(var_decl_body + COLON)) + RBRA
 	struct_decl = STRUCT + ident + struct_def + COLON
@@ -54,7 +57,7 @@ def prepare_grammar():
 	var_decl_body << type_decl + ident
 	var_decl = extern_mod + var_decl_body + COLON
 
-	decl = pp.Group(var_decl ^ struct_decl ^ template_decl)
+	decl = pp.Group(var_decl ^ struct_decl ^ template_decl ^ sequence_decl)
 
 	grammar = pp.ZeroOrMore(decl)
 
