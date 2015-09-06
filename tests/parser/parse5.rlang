@@ -1,0 +1,22 @@
+template x()
+{
+	a = b;
+	if (1) {
+	}
+	if (2) {
+		a = 2;
+	} else {
+		a = 1;
+	}
+	if (3) {
+		x = 3;
+	} else if (4) {
+		x = 4;
+	} else {
+		x = 5;
+		f = 1;
+	}
+/*
+*/
+	run x;
+}
