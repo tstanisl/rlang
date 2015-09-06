@@ -25,5 +25,26 @@ import sys
 if sys.version_info.major != 3:
 	raise Exception("Python 3.x required")
 
+def prepare_grammar():
+	import pyparsing as pp
+
+	grammar = pp.Empty()
+	comment = pp.cppStyleComment()
+	grammar.ignore(comment)
+
+	return grammar
+
 def main():
-	pass
+	import sys
+
+	in_file = sys.stdin
+	if len(sys.argv) > 1 and sys.argv[1] != '-':
+		in_file = open(sys.argv[1], "r")
+
+	grammar = prepare_grammar()
+	ast = grammar.parseFile(in_file, True)
+
+	print(ast)
+
+if __name__ == "__main__":
+	main()
