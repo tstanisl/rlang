@@ -38,7 +38,16 @@ def prepare_grammar():
 	bin_digit = pp.Combine(pp.Suppress('0b') + pp.Word('01'), adjacent = True)
 	digit = dec_digit ^ hex_digit ^ bin_digit
 
-	top_expr = digit
+	expr = pp.Forward()
+
+	DOT, LSPAR, RSPAR = [pp.Suppress(c) for c in '.[]']
+	struct_access = DOT + ident
+	array_access = LSPAR + expr + RSPAR
+	access_expr = ident + pp.ZeroOrMore(struct_access ^ array_access)
+
+	par_expr = LPAR + expr + RPAR
+	# TODO: what about casts
+	top_expr = digit ^ access_expr ^ par_expr
 
 	unr_expr = pp.ZeroOrMore(PLUS ^ MINUS ^ NOT) + top_expr
 	mul_expr = unr_expr + pp.ZeroOrMore((MUL ^ DIV ^ MOD) + unr_expr)
@@ -57,7 +66,7 @@ def prepare_grammar():
 	induc_expr << or_expr + pp.Optional(pp.Suppress('==>') + induc_expr)
 	equiv_expr = induc_expr + pp.Optional(pp.Suppress('<==>') + induc_expr)
 	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr = cond_expr
+	expr << cond_expr
 
 	buildin_type = pp.Keyword('int')
 	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
