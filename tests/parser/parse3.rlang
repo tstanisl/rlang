@@ -1,0 +1,4 @@
+int a = 1;
+int b = 0x1;
+int c = 0xab0192;
+int d = 0b01010111;
