@@ -28,12 +28,21 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	import pyparsing as pp
 
-	LBRA, RBRA, COLON = [pp.Suppress(c) for c in '{};']
+	LBRA, RBRA, COLON, LPAR, RPAR, COMMA = [pp.Suppress(c) for c in '{};(),']
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
 
 	buildin_type = pp.Keyword('int')
+	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
 
 	var_decl_body = pp.Forward()
+
+	block_stmt = LBRA + RBRA
+	contracts_decl = pp.Empty()
+	arg_list = pp.Group(pp.Optional(var_decl_body + pp.ZeroOrMore( \
+		COMMA + var_decl_body) + pp.Optional(COMMA)))
+	TEMPLATE = pp.Suppress(pp.Keyword('template'))
+	template_decl = extern_mod + TEMPLATE + ident + LPAR + \
+		arg_list + RPAR + contracts_decl + block_stmt
 
 	STRUCT = pp.Keyword('struct')
 	struct_def = LBRA + pp.Group(pp.ZeroOrMore(var_decl_body + COLON)) + RBRA
@@ -42,11 +51,10 @@ def prepare_grammar():
 	struct_type = STRUCT + ident
 	type_decl = buildin_type ^ struct_type
 
-	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
 	var_decl_body << type_decl + ident
 	var_decl = extern_mod + var_decl_body + COLON
 
-	decl = pp.Group(var_decl ^ struct_decl)
+	decl = pp.Group(var_decl ^ struct_decl ^ template_decl)
 
 	grammar = pp.ZeroOrMore(decl)
 
