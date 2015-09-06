@@ -28,17 +28,18 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	import pyparsing as pp
 
+	LBRA, RBRA, COLON = [pp.Suppress(c) for c in '{};']
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
 
 	buildin_type = pp.Keyword('int')
 
 	var_decl = pp.Forward()
 
-	struct_def = pp.Suppress('{') + pp.Group(pp.ZeroOrMore(var_decl)) + pp.Suppress('}')
+	struct_def = LBRA + pp.Group(pp.ZeroOrMore(var_decl)) + RBRA
 	struct_decl = pp.Keyword('struct') + ident + pp.Optional(struct_def)
 
 	type_decl = buildin_type ^ struct_decl
-	var_decl << type_decl + pp.Optional(ident) + pp.Suppress(';')
+	var_decl << type_decl + pp.Optional(ident) + COLON
 
 	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
 
