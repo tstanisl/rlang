@@ -73,7 +73,18 @@ def prepare_grammar():
 
 	var_decl_body = pp.Forward()
 
-	block_stmt = LBRA + RBRA
+	stmt = pp.Forward()
+	block_stmt = LBRA + pp.Group(pp.ZeroOrMore(stmt)) + RBRA
+	assign_stmt = access_expr + ASSIGN + expr + SCOLON
+	RUN = pp.Suppress(pp.Keyword('run'))
+	run_stmt = RUN + ident + SCOLON
+	IF = pp.Suppress(pp.Keyword('if'))
+	ELSE = pp.Suppress(pp.Keyword('else'))
+	if_stmt = pp.Forward()
+	if_stmt << IF + LPAR + expr + RPAR + block_stmt + pp.Optional(ELSE + (block_stmt ^ if_stmt))
+
+	stmt << pp.Group(block_stmt ^ if_stmt ^ run_stmt ^ assign_stmt)
+
 	contracts_decl = pp.Empty()
 	arg_list = pp.Group(pp.Optional(var_decl_body + pp.ZeroOrMore( \
 		COMMA + var_decl_body) + pp.Optional(COMMA)))
