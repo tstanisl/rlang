@@ -35,15 +35,17 @@ def prepare_grammar():
 
 	var_decl = pp.Forward()
 
+	STRUCT = pp.Keyword('struct')
 	struct_def = LBRA + pp.Group(pp.ZeroOrMore(var_decl)) + RBRA
-	struct_decl = pp.Keyword('struct') + ident + pp.Optional(struct_def)
+	struct_decl = STRUCT + ident + struct_def + COLON
 
-	type_decl = buildin_type ^ struct_decl
-	var_decl << type_decl + pp.Optional(ident) + COLON
+	struct_type = STRUCT + ident
+	type_decl = buildin_type ^ struct_type
+	var_decl << type_decl + ident + COLON
 
 	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
 
-	decl = pp.Group(extern_mod + var_decl)
+	decl = pp.Group(extern_mod + (var_decl ^ struct_decl))
 
 	grammar = pp.ZeroOrMore(decl)
 
