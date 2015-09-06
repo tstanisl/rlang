@@ -37,7 +37,15 @@ def prepare_grammar():
 	bin_digit = pp.Combine(pp.Suppress('0b') + pp.Word('01'), adjacent = True)
 	digit = dec_digit ^ hex_digit ^ bin_digit
 
-	cmp_expr = digit
+	add_expr = digit
+
+	LT = pp.Suppress("<")
+	LE = pp.Suppress("<=")
+	EQ = pp.Suppress("==")
+	GE = pp.Suppress(">=")
+	GT = pp.Suppress(">")
+	cmp_expr = add_expr + pp.ZeroOrMore((LT ^ LE ^ EQ ^ GE ^ GT) + add_expr)
+
 	and_expr = cmp_expr + pp.ZeroOrMore(pp.Suppress('&&') + cmp_expr)
 	or_expr = and_expr + pp.ZeroOrMore(pp.Suppress('||') + and_expr)
 	induc_expr = pp.Forward()
