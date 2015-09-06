@@ -29,7 +29,15 @@ def prepare_grammar():
 	import pyparsing as pp
 
 	LBRA, RBRA, COLON, LPAR, RPAR, COMMA = [pp.Suppress(c) for c in '{};(),']
+	ASSIGN, = [pp.Suppress(c) for c in '=']
+
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+	dec_digit = pp.Word("123456789", "0123456789")
+	hex_digit = pp.Combine(pp.Suppress('0x') + pp.Word(pp.hexnums), adjacent = True)
+	bin_digit = pp.Combine(pp.Suppress('0b') + pp.Word('01'), adjacent = True)
+	digit = dec_digit ^ hex_digit ^ bin_digit
+
+	expr = digit
 
 	buildin_type = pp.Keyword('int')
 	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
@@ -55,7 +63,7 @@ def prepare_grammar():
 	type_decl = buildin_type ^ struct_type
 
 	var_decl_body << type_decl + ident
-	var_decl = extern_mod + var_decl_body + COLON
+	var_decl = extern_mod + var_decl_body + pp.Optional(ASSIGN + expr) + COLON
 
 	decl = pp.Group(var_decl ^ struct_decl ^ template_decl ^ sequence_decl)
 
