@@ -32,7 +32,13 @@ def prepare_grammar():
 
 	buildin_type = pp.Keyword('int')
 
-	var_decl = buildin_type + ident + pp.Suppress(';')
+	var_decl = pp.Forward()
+
+	struct_def = pp.Suppress('{') + pp.Group(pp.ZeroOrMore(var_decl)) + pp.Suppress('}')
+	struct_decl = pp.Keyword('struct') + ident + pp.Optional(struct_def)
+
+	type_decl = buildin_type ^ struct_decl
+	var_decl << type_decl + pp.Optional(ident) + pp.Suppress(';')
 
 	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
 
