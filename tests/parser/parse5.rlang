@@ -19,4 +19,5 @@ template x()
 /*
 */
 	run x;
+	rt!(.a = b, .c=c.f[1].f);
 }

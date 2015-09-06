@@ -83,7 +83,11 @@ def prepare_grammar():
 	if_stmt = pp.Forward()
 	if_stmt << IF + LPAR + expr + RPAR + block_stmt + pp.Optional(ELSE + (block_stmt ^ if_stmt))
 
-	stmt << pp.Group(block_stmt ^ if_stmt ^ run_stmt ^ assign_stmt)
+	arg_bind = pp.Group(DOT + ident + ASSIGN + access_expr)
+	arg_bind_list = pp.Group(pp.Optional(arg_bind + pp.ZeroOrMore(COMMA + arg_bind) + pp.Optional(COMMA)))
+	template_stmt = ident + NOT + LPAR + arg_bind_list + RPAR + SCOLON
+
+	stmt << pp.Group(block_stmt ^ if_stmt ^ run_stmt ^ assign_stmt ^ template_stmt)
 
 	contracts_decl = pp.Empty()
 	arg_list = pp.Group(pp.Optional(var_decl_body + pp.ZeroOrMore( \
