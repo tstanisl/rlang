@@ -69,7 +69,10 @@ def prepare_grammar():
 	expr << cond_expr
 
 	buildin_type = pp.Keyword('int')
-	extern_mod = pp.Optional(pp.Keyword('extern'), default = '__noextern')
+
+	extern_mod = pp.Optional(pp.Keyword('extern'))
+	extern_mod.setParseAction(lambda toks: len(toks) != 0)
+	extern_mod.setResultsName('extern')
 
 	var_decl_body = pp.Forward()
 
