@@ -33,9 +33,9 @@ def prepare_grammar():
 	MUL, DIV, MOD, NOT = [pp.Suppress(c) for c in '*/%!']
 
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
-	dec_digit = pp.Word("123456789", "0123456789")
-	hex_digit = pp.Combine(pp.Suppress('0x') + pp.Word(pp.hexnums), adjacent = True)
-	bin_digit = pp.Combine(pp.Suppress('0b') + pp.Word('01'), adjacent = True)
+	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
+	hex_digit = pp.Regex(r'0x[0-9a-fA-F]+').setParseAction(lambda toks: int(toks[0][2:],16))
+	bin_digit = pp.Regex(r'0b[01]+').setParseAction(lambda toks: int(toks[0][2:],2))
 	digit = dec_digit ^ hex_digit ^ bin_digit
 
 	expr = pp.Forward()
