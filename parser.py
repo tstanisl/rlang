@@ -111,6 +111,8 @@ def prepare_grammar():
 	def cmp_expr_merge(t):
 		if len(t) == 0:
 			return
+		if len(t) == 1:
+			return push1(t)
 		print('cmp_expr_merge')
 		print(stack)
 		print(t)
