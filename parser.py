@@ -95,8 +95,11 @@ def prepare_grammar():
 	unr_expr = pp.Forward()
 	unr_expr << (top_expr ^ ((PLUS ^ MINUS ^ NOT) + unr_expr).setParseAction(push_unr))
 
-	mul_expr = unr_expr + pp.ZeroOrMore((MUL ^ DIV ^ MOD) + unr_expr)
-	add_expr = mul_expr + pp.ZeroOrMore((PLUS ^ MINUS) + mul_expr)
+	MUL = pp.Literal('*')
+	DIV = pp.Literal('/')
+	MOD = pp.Literal('%')
+	mul_expr = unr_expr + pp.ZeroOrMore(((MUL ^ DIV ^ MOD) + unr_expr).setParseAction(push1))
+	add_expr = mul_expr + pp.ZeroOrMore(((PLUS ^ MINUS) + mul_expr).setParseAction(push1))
 
 	LT = pp.Suppress("<")
 	LE = pp.Suppress("<=")
@@ -111,7 +114,7 @@ def prepare_grammar():
 	induc_expr << or_expr + pp.Optional(pp.Suppress('==>') + induc_expr)
 	equiv_expr = induc_expr + pp.Optional(pp.Suppress('<==>') + induc_expr)
 	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr << unr_expr
+	expr << add_expr
 
 	buildin_type = pp.Keyword('int')
 
