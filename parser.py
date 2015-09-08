@@ -109,18 +109,19 @@ def prepare_grammar():
 	GT = pp.Literal(">")
 	cmp_expr = pp.Suppress(add_expr) + pp.ZeroOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + pp.Suppress(add_expr))
 	def cmp_expr_merge(t):
+		print('cmp_expr_merge')
+		print(stack)
+		print(t)
 		if len(t) == 0:
 			return
 		if len(t) == 1:
 			return push1(t)
-		print('cmp_expr_merge')
-		print(stack)
-		print(t)
 		L = len(t)
-		base = ['<>', stack[L - 2]]
+		base = ['<>', stack[L - 1]]
 		r = sum([list(x) for x in zip(t, stack[-L:])], base)
-		del stack[L-2:]
+		del stack[L-1:]
 		stack.append(r)
+		print(stack)
 		return r
 
 	cmp_expr.setParseAction(cmp_expr_merge)
