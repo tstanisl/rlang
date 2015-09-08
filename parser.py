@@ -104,9 +104,10 @@ def prepare_grammar():
 	LT = pp.Literal("<")
 	LE = pp.Literal("<=")
 	EQ = pp.Literal("==")
+	NEQ = pp.Literal("!=")
 	GE = pp.Literal(">=")
 	GT = pp.Literal(">")
-	cmp_expr = pp.Suppress(add_expr) + pp.ZeroOrMore((LT ^ LE ^ EQ ^ GE ^ GT) + pp.Suppress(add_expr))
+	cmp_expr = pp.Suppress(add_expr) + pp.ZeroOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + pp.Suppress(add_expr))
 	def cmp_expr_merge(t):
 		if len(t) == 0:
 			return
