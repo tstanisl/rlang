@@ -133,9 +133,9 @@ def prepare_grammar():
 	or_expr << (and_expr + pp.Optional((pp.Literal('||') + or_expr).setParseAction(push1)))
 	induc_expr = pp.Forward()
 	induc_expr << (or_expr + pp.Optional((pp.Literal('==>') + induc_expr).setParseAction(push1)))
-	equiv_expr = induc_expr + pp.Optional(pp.Suppress('<==>') + induc_expr)
+	equiv_expr = induc_expr + pp.Optional((pp.Literal('<==>') + induc_expr).setParseAction(push1))
 	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr << induc_expr
+	expr << equiv_expr
 
 	buildin_type = pp.Keyword('int')
 
