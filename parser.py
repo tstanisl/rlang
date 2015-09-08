@@ -134,8 +134,21 @@ def prepare_grammar():
 	induc_expr = pp.Forward()
 	induc_expr << (or_expr + pp.Optional((pp.Literal('==>') + induc_expr).setParseAction(push1)))
 	equiv_expr = induc_expr + pp.Optional((pp.Literal('<==>') + induc_expr).setParseAction(push1))
-	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr << equiv_expr
+	cond_expr = equiv_expr + pp.Optional(pp.Literal('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
+	def cond_expr_merge(t):
+		print('cond_expr_merge')
+		print(stack)
+		print(t)
+		if len(t) == 0:
+			return
+		r = ['?'] + stack[-3:]
+		del stack[-3:]
+		stack.append(r)
+		return r;
+
+	cond_expr.setParseAction(cond_expr_merge)
+
+	expr << cond_expr
 
 	buildin_type = pp.Keyword('int')
 
