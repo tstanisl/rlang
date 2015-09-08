@@ -26,6 +26,29 @@ if sys.version_info.major != 3:
 	raise Exception("Python 3.x required")
 
 def prepare_grammar():
+	stack = []
+	def push(t):
+		print('push0')
+		print(stack)
+		print(t)
+		stack.append(t[0])
+		return t[0]
+	def push1(t):
+		print('push1')
+		print(stack)
+		print(t)
+		b = stack.pop()
+		a = stack.pop()
+		#print(a)
+		r = [t[0], a, b]
+		stack.append(r)
+		#print(r)
+		return r
+	def push2(t):
+		stack.append(t[0])
+		stack.append(t[2])
+		stack.append(t[1])
+
 	import pyparsing as pp
 
 	LBRA, RBRA, SCOLON, LPAR, RPAR, COMMA = [pp.Suppress(c) for c in '{};(),']
@@ -33,17 +56,29 @@ def prepare_grammar():
 	MUL, DIV, MOD, NOT = [pp.Suppress(c) for c in '*/%!']
 
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+	eident = ident.copy()
+	eident.setParseAction(push)
+
 	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
 	hex_digit = pp.Regex(r'0x[0-9a-fA-F]+').setParseAction(lambda toks: int(toks[0][2:],16))
 	bin_digit = pp.Regex(r'0b[01]+').setParseAction(lambda toks: int(toks[0][2:],2))
 	digit = dec_digit ^ hex_digit ^ bin_digit
+	#push(digit)
+	digit.setParseAction(push)
 
 	expr = pp.Forward()
 
-	DOT, LSPAR, RSPAR = [pp.Suppress(c) for c in '.[]']
-	struct_access = DOT + ident
+	DOT = pp.Literal('.')
+	struct_access = DOT + eident
+	struct_access.setParseAction(push1)
+
+	LSPAR = pp.Literal('[')
+	RSPAR = pp.Literal(']')
 	array_access = LSPAR + expr + RSPAR
-	access_expr = ident + pp.ZeroOrMore(struct_access ^ array_access)
+	array_access.setParseAction(push1)
+	#array_access.setParseAction(lambda toks: ['[]', toks[0]])
+	access_expr = eident + pp.Group(pp.ZeroOrMore(struct_access ^ array_access))
+	#access_expr.setParseAction(lambda t: ['.', t[0], list(t[1:])])
 
 	par_expr = LPAR + expr + RPAR
 	# TODO: what about casts
@@ -110,7 +145,7 @@ def prepare_grammar():
 	type_decl = buildin_type ^ struct_type
 
 	var_decl_body << type_decl + ident
-	var_decl = extern_mod + var_decl_body + pp.Optional(ASSIGN + expr) + SCOLON
+	var_decl = extern_mod + var_decl_body + pp.Optional(ASSIGN + expr, default = None) + SCOLON
 
 	decl = pp.Group(var_decl ^ struct_decl ^ template_decl ^ sequence_decl)
 
@@ -118,6 +153,10 @@ def prepare_grammar():
 
 	comment = pp.cppStyleComment()
 	grammar.ignore(comment)
+
+	def show(t):
+		print(stack)
+	grammar.setParseAction(show)
 
 	return grammar
 
