@@ -44,10 +44,14 @@ def prepare_grammar():
 		stack.append(r)
 		#print(r)
 		return r
-	def push2(t):
-		stack.append(t[0])
-		stack.append(t[2])
-		stack.append(t[1])
+	def push_unr(t):
+		print('push_unr')
+		print(stack)
+		print(t)
+		a = stack.pop()
+		r = [t[0], a]
+		stack.append(r)
+		return r;
 
 	import pyparsing as pp
 
@@ -84,7 +88,13 @@ def prepare_grammar():
 	# TODO: what about casts
 	top_expr = digit ^ access_expr ^ par_expr
 
-	unr_expr = pp.ZeroOrMore(PLUS ^ MINUS ^ NOT) + top_expr
+	PLUS = pp.Literal('+')
+	MINUS = pp.Literal('-')
+	NOT = pp.Literal('!')
+	#unr_expr = pp.ZeroOrMore(PLUS ^ MINUS ^ NOT) + top_expr
+	unr_expr = pp.Forward()
+	unr_expr << (top_expr ^ ((PLUS ^ MINUS ^ NOT) + unr_expr).setParseAction(push_unr))
+
 	mul_expr = unr_expr + pp.ZeroOrMore((MUL ^ DIV ^ MOD) + unr_expr)
 	add_expr = mul_expr + pp.ZeroOrMore((PLUS ^ MINUS) + mul_expr)
 
@@ -101,7 +111,7 @@ def prepare_grammar():
 	induc_expr << or_expr + pp.Optional(pp.Suppress('==>') + induc_expr)
 	equiv_expr = induc_expr + pp.Optional(pp.Suppress('<==>') + induc_expr)
 	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr << cond_expr
+	expr << unr_expr
 
 	buildin_type = pp.Keyword('int')
 
