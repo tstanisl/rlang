@@ -101,12 +101,26 @@ def prepare_grammar():
 	mul_expr = unr_expr + pp.ZeroOrMore(((MUL ^ DIV ^ MOD) + unr_expr).setParseAction(push1))
 	add_expr = mul_expr + pp.ZeroOrMore(((PLUS ^ MINUS) + mul_expr).setParseAction(push1))
 
-	LT = pp.Suppress("<")
-	LE = pp.Suppress("<=")
-	EQ = pp.Suppress("==")
-	GE = pp.Suppress(">=")
-	GT = pp.Suppress(">")
-	cmp_expr = add_expr + pp.ZeroOrMore((LT ^ LE ^ EQ ^ GE ^ GT) + add_expr)
+	LT = pp.Literal("<")
+	LE = pp.Literal("<=")
+	EQ = pp.Literal("==")
+	GE = pp.Literal(">=")
+	GT = pp.Literal(">")
+	cmp_expr = pp.Suppress(add_expr) + pp.ZeroOrMore((LT ^ LE ^ EQ ^ GE ^ GT) + pp.Suppress(add_expr))
+	def cmp_expr_merge(t):
+		if len(t) == 0:
+			return
+		print('cmp_expr_merge')
+		print(stack)
+		print(t)
+		L = len(t)
+		base = ['<>', stack[L - 2]]
+		r = sum([list(x) for x in zip(t, stack[-L:])], base)
+		del stack[L-2:]
+		stack.append(r)
+		return r
+
+	cmp_expr.setParseAction(cmp_expr_merge)
 
 	and_expr = cmp_expr + pp.ZeroOrMore(pp.Suppress('&&') + cmp_expr)
 	or_expr = and_expr + pp.ZeroOrMore(pp.Suppress('||') + and_expr)
@@ -114,7 +128,7 @@ def prepare_grammar():
 	induc_expr << or_expr + pp.Optional(pp.Suppress('==>') + induc_expr)
 	equiv_expr = induc_expr + pp.Optional(pp.Suppress('<==>') + induc_expr)
 	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr << add_expr
+	expr << cmp_expr
 
 	buildin_type = pp.Keyword('int')
 
