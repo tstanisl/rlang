@@ -122,13 +122,17 @@ def prepare_grammar():
 
 	cmp_expr.setParseAction(cmp_expr_merge)
 
-	and_expr = cmp_expr + pp.ZeroOrMore(pp.Suppress('&&') + cmp_expr)
-	or_expr = and_expr + pp.ZeroOrMore(pp.Suppress('||') + and_expr)
+	and_expr = pp.Forward()
+	and_expr << (cmp_expr + pp.Optional((pp.Literal('&&') + and_expr).setParseAction(push1)))
+	#and_expr = cmp_expr + pp.ZeroOrMore(pp.Suppress('&&') + cmp_expr)
+	#or_expr = and_expr + pp.ZeroOrMore(pp.Suppress('||') + and_expr)
+	or_expr = pp.Forward()
+	or_expr << (and_expr + pp.Optional((pp.Literal('||') + or_expr).setParseAction(push1)))
 	induc_expr = pp.Forward()
 	induc_expr << or_expr + pp.Optional(pp.Suppress('==>') + induc_expr)
 	equiv_expr = induc_expr + pp.Optional(pp.Suppress('<==>') + induc_expr)
 	cond_expr = equiv_expr + pp.Optional(pp.Suppress('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	expr << cmp_expr
+	expr << or_expr
 
 	buildin_type = pp.Keyword('int')
 
