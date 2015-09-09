@@ -32,6 +32,7 @@ def prepare_grammar():
 		print(stack)
 		print(t)
 		stack.append(t[0])
+		print(stack)
 		return t[0]
 	def push1(t):
 		print('push1')
@@ -42,6 +43,7 @@ def prepare_grammar():
 		#print(a)
 		r = [t[0], a, b]
 		stack.append(r)
+		print(stack)
 		#print(r)
 		return r
 	def push_unr(t):
@@ -51,6 +53,7 @@ def prepare_grammar():
 		a = stack.pop()
 		r = [t[0], a]
 		stack.append(r)
+		print(stack)
 		return r;
 
 	import pyparsing as pp
