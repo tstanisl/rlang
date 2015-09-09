@@ -39,6 +39,11 @@ def prepare_grammar():
 		parser << (arg ^ body)
 		return parser
 
+	def LEFT_BINARY(sym, arg):
+		body = sym + arg
+		body.setParseAction(lambda t: pop(t[0], 2))
+		return arg + pp.ZeroOrMore(body)
+
 	def push(t):
 		print('push0')
 		print(stack)
@@ -114,7 +119,8 @@ def prepare_grammar():
 	MUL = pp.Literal('*')
 	DIV = pp.Literal('/')
 	MOD = pp.Literal('%')
-	mul_expr = unr_expr + pp.ZeroOrMore(((MUL ^ DIV ^ MOD) + unr_expr).setParseAction(push1))
+	mul_expr = LEFT_BINARY(MUL ^ DIV ^ MOD, unr_expr)
+	#mul_expr = unr_expr + pp.ZeroOrMore(((MUL ^ DIV ^ MOD) + unr_expr).setParseAction(push1))
 	add_expr = mul_expr + pp.ZeroOrMore(((PLUS ^ MINUS) + mul_expr).setParseAction(push1))
 
 	LT = pp.Literal("<")
