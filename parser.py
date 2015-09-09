@@ -172,19 +172,12 @@ def prepare_grammar():
 	IND = pp.Literal("==>")
 	induc_expr = RIGHT_BINARY(IND, or_expr)
 	equiv_expr = induc_expr + pp.Optional((pp.Literal('<==>') + induc_expr).setParseAction(push1))
-	cond_expr = equiv_expr + pp.Optional(pp.Literal('?') + equiv_expr + pp.Suppress(':') + equiv_expr)
-	def cond_expr_merge(t):
-		print('cond_expr_merge')
-		print(stack)
-		print(t)
-		if len(t) == 0:
-			return
-		r = ['?'] + stack[-3:]
-		del stack[-3:]
-		stack.append(r)
-		return r;
 
-	cond_expr.setParseAction(cond_expr_merge)
+	cond_expr = pp.Forward()
+	QUEST = pp.Literal('?')
+	cond_tail = QUEST + cond_expr + COLON + cond_expr
+	cond_tail.setParseAction(lambda t: pop(t[0], 3))
+	cond_expr << (equiv_expr + pp.Optional(cond_tail))
 
 	expr << cond_expr
 
