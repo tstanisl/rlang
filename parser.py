@@ -138,24 +138,30 @@ def prepare_grammar():
 	NEQ = pp.Literal("!=")
 	GE = pp.Literal(">=")
 	GT = pp.Literal(">")
-	cmp_tail = pp.OneOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + pp.Suppress(add_expr))
+	cmp_tail = pp.OneOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + add_expr)
 	def cmp_expr_merge(t):
 		print('cmp_expr_merge')
 		print(stack)
 		print(t)
-#		if len(t) == 1:
-#			return t[0]
-#		if len(t) == 3:
-#			return pop(t[1], 2)
-		r = pop('<>', len(t)+1)
-		print(r)
-		r = r + [t]
-		print(r)
-		print(stack)
-		stack.pop()
-		stack.append(r)
-		print(stack)
-		return stack[-1]
+		L = len(t) // 2
+		print(L)
+		if L == 1:
+			return pop(t[0], 2)
+		del stack[-L:]
+		return pop('<>', 1, t[:])
+##		if len(t) == 1:
+##			return t[0]
+##		if len(t) == 3:
+##			return pop(t[1], 2)
+#		r = pop('<>', len(t)+1)
+#		print(r)
+#		r = r + [t]
+#		print(r)
+#		print(stack)
+#		stack.pop()
+#		stack.append(r)
+#		print(stack)
+#		return stack[-1]
 #		r = pop(
 #		L = len(t)
 #		base = ['<>', stack[L - 1]]
@@ -171,7 +177,7 @@ def prepare_grammar():
 	#and_expr = pp.Forward()
 	#and_expr << (cmp_expr + pp.Optional((pp.Literal('&&') + and_expr).setParseAction(push1)))
 	AND = pp.Literal('&&')
-	and_expr = RIGHT_BINARY(AND, add_expr)
+	and_expr = RIGHT_BINARY(AND, cmp_expr)
 	#and_expr = cmp_expr + pp.ZeroOrMore(pp.Suppress('&&') + cmp_expr)
 	#or_expr = and_expr + pp.ZeroOrMore(pp.Suppress('||') + and_expr)
 	OR = pp.Literal('||')
