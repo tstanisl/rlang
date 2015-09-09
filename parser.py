@@ -27,6 +27,18 @@ if sys.version_info.major != 3:
 
 def prepare_grammar():
 	stack = []
+	def pop(id, n):
+		tail = stack[-n:]
+		del stack[-n:]
+		stack.append([id] + tail)
+		return stack[-1]
+
+	def RIGHT_UNARY(sym, arg):
+		parser = pp.Forward()
+		body = (sym + parser).setParseAction(lambda t: pop(t[0], 1))
+		parser << (arg ^ body)
+		return parser
+
 	def push(t):
 		print('push0')
 		print(stack)
@@ -95,8 +107,9 @@ def prepare_grammar():
 	MINUS = pp.Literal('-')
 	NOT = pp.Literal('!')
 	#unr_expr = pp.ZeroOrMore(PLUS ^ MINUS ^ NOT) + top_expr
-	unr_expr = pp.Forward()
-	unr_expr << (top_expr ^ ((PLUS ^ MINUS ^ NOT) + unr_expr).setParseAction(push_unr))
+	#unr_expr = pp.Forward()
+	#unr_expr << (top_expr ^ ((PLUS ^ MINUS ^ NOT) + unr_expr).setParseAction(push_unr))
+	unr_expr = RIGHT_UNARY(PLUS ^ MINUS ^ NOT, top_expr)
 
 	MUL = pp.Literal('*')
 	DIV = pp.Literal('/')
