@@ -121,8 +121,9 @@ def prepare_grammar():
 	DIV = pp.Literal('/')
 	MOD = pp.Literal('%')
 	mul_expr = LEFT_BINARY(MUL ^ DIV ^ MOD, unr_expr)
+	add_expr = LEFT_BINARY(PLUS ^ MINUS, mul_expr)
 	#mul_expr = unr_expr + pp.ZeroOrMore(((MUL ^ DIV ^ MOD) + unr_expr).setParseAction(push1))
-	add_expr = mul_expr + pp.ZeroOrMore(((PLUS ^ MINUS) + mul_expr).setParseAction(push1))
+	#add_expr = mul_expr + pp.ZeroOrMore(((PLUS ^ MINUS) + mul_expr).setParseAction(push1))
 
 	LT = pp.Literal("<")
 	LE = pp.Literal("<=")
