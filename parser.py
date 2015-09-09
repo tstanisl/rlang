@@ -35,7 +35,8 @@ def prepare_grammar():
 
 	def RIGHT_UNARY(sym, arg):
 		parser = pp.Forward()
-		body = (sym + parser).setParseAction(lambda t: pop(t[0], 1))
+		body = sym + parser
+		body.setParseAction(lambda t: pop(t[0], 1))
 		parser << (arg ^ body)
 		return parser
 
