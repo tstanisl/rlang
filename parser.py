@@ -160,7 +160,7 @@ def prepare_grammar():
 	#and_expr = pp.Forward()
 	#and_expr << (cmp_expr + pp.Optional((pp.Literal('&&') + and_expr).setParseAction(push1)))
 	AND = pp.Literal('&&')
-	and_expr = RIGHT_BINARY(AND, cmp_expr)
+	and_expr = RIGHT_BINARY(AND, add_expr)
 	#and_expr = cmp_expr + pp.ZeroOrMore(pp.Suppress('&&') + cmp_expr)
 	#or_expr = and_expr + pp.ZeroOrMore(pp.Suppress('||') + and_expr)
 	OR = pp.Literal('||')
