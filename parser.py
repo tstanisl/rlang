@@ -27,10 +27,10 @@ if sys.version_info.major != 3:
 
 def prepare_grammar():
 	stack = []
-	def pop(id, n):
+	def pop(id, n, extra = []):
 		tail = stack[-n:]
 		del stack[-n:]
-		stack.append([id] + tail)
+		stack.append([id] + tail + extra)
 		return stack[-1]
 
 	def RIGHT_UNARY(sym, arg):
