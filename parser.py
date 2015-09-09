@@ -138,24 +138,35 @@ def prepare_grammar():
 	NEQ = pp.Literal("!=")
 	GE = pp.Literal(">=")
 	GT = pp.Literal(">")
-	cmp_expr = pp.Suppress(add_expr) + pp.ZeroOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + pp.Suppress(add_expr))
+	cmp_tail = pp.OneOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + pp.Suppress(add_expr))
 	def cmp_expr_merge(t):
 		print('cmp_expr_merge')
 		print(stack)
 		print(t)
-		if len(t) == 0:
-			return
-		if len(t) == 1:
-			return push1(t)
-		L = len(t)
-		base = ['<>', stack[L - 1]]
-		r = sum([list(x) for x in zip(t, stack[-L:])], base)
-		del stack[L-1:]
+#		if len(t) == 1:
+#			return t[0]
+#		if len(t) == 3:
+#			return pop(t[1], 2)
+		r = pop('<>', len(t)+1)
+		print(r)
+		r = r + [t]
+		print(r)
+		print(stack)
+		stack.pop()
 		stack.append(r)
 		print(stack)
-		return r
+		return stack[-1]
+#		r = pop(
+#		L = len(t)
+#		base = ['<>', stack[L - 1]]
+#		r = sum([list(x) for x in zip(t, stack[-L:])], base)
+#		del stack[L-1:]
+#		stack.append(r)
+#		print(stack)
+#		return r
 
-	cmp_expr.setParseAction(cmp_expr_merge)
+	cmp_tail.setParseAction(cmp_expr_merge)
+	cmp_expr = add_expr + pp.Optional(cmp_tail)
 
 	#and_expr = pp.Forward()
 	#and_expr << (cmp_expr + pp.Optional((pp.Literal('&&') + and_expr).setParseAction(push1)))
