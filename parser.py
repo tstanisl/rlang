@@ -28,6 +28,7 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	stack = []
 	def pop(id, n, extra = []):
+		print("pop(id={}, n={})".format(id, n))
 		tail = stack[-n:]
 		del stack[-n:]
 		stack.append([id] + tail + extra)
