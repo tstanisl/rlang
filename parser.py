@@ -139,41 +139,36 @@ def prepare_grammar():
 	NEQ = pp.Literal("!=")
 	GE = pp.Literal(">=")
 	GT = pp.Literal(">")
-	cmp_tail = pp.OneOrMore((LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT) + add_expr)
-	def cmp_expr_merge(t):
-		print('cmp_expr_merge')
+	CMP = LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT
+
+	def cmp_tail2_merge(t):
+		print('cmp_tail2_merge')
 		print(stack)
 		print(t)
-		L = len(t) // 2
-		print(L)
-		if L == 1:
-			return pop(t[0], 2)
-		del stack[-L:]
-		return pop('<>', 1, t[:])
-##		if len(t) == 1:
-##			return t[0]
-##		if len(t) == 3:
-##			return pop(t[1], 2)
-#		r = pop('<>', len(t)+1)
-#		print(r)
-#		r = r + [t]
-#		print(r)
-#		print(stack)
-#		stack.pop()
-#		stack.append(r)
-#		print(stack)
-#		return stack[-1]
-#		r = pop(
-#		L = len(t)
-#		base = ['<>', stack[L - 1]]
-#		r = sum([list(x) for x in zip(t, stack[-L:])], base)
-#		del stack[L-1:]
-#		stack.append(r)
-#		print(stack)
-#		return r
+		z = stack.pop()
+		print("z={}".format(z))
+		h = stack.pop()
+		print("h={}".format(h))
+		if h[0] == '<>':
+			# stack = ..., [<> ... op1 a], z
+			#           -> [<> ... op1 a op2 z]
+			ret = h + [t[0], z]
+		else:
+			# stack = ..., [op1 a b], z
+			#           -> [<> a op1 b op2 z]
+			ret = ['<>', h[1], h[0], h[2], t[0], z]
+		print("ret={}".format(ret))
+		stack.append(ret)
+		return ret
+	cmp_tail2 = CMP + add_expr
+	cmp_tail2.setParseAction(cmp_tail2_merge)
 
-	cmp_tail.setParseAction(cmp_expr_merge)
-	cmp_expr = add_expr + pp.Optional(cmp_tail)
+	cmp_tail1 = CMP + add_expr
+	cmp_tail1.setParseAction(lambda t: pop(t[0], 2))
+
+	# a < b -> ['<', a, b]
+	# a < b < c -> ['<>', a, '<', b, '<', c]
+	cmp_expr = add_expr + pp.Optional(cmp_tail1 + pp.ZeroOrMore(cmp_tail2))
 
 	#and_expr = pp.Forward()
 	#and_expr << (cmp_expr + pp.Optional((pp.Literal('&&') + and_expr).setParseAction(push1)))
