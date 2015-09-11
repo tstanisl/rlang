@@ -1,0 +1,49 @@
+atom := id [ '\'' ] | digit | ( '(' expr ')' ) | ( '#' sep_atom )
+
+struct_access := '.' id
+array_access := '[' expr ']'
+
+access_expr := atom { struct_access | array_access }
+unr_expr := access_expr | ( '!' | '+' | '-' unr_expr )
+mul_expr := unr_expr { '*' | '/' | '%' unr_expr }
+add_expr := mul_expr { '+' | '-' mul_expr }
+cmp_expr := add_expr [ '<' | '<=' | '==' | '>=' | '>' | '!=' cmp_expr ]
+and_expr := cmp_expr [ '&&' and_expr ]
+orr_expr := and_expr [ '||' orr_expr ]
+imp_expr := orr_expr [ '==>' imp_expr ]
+cnd_expr := imp_expr [ '?' cnd_expr ':' cnd_expr ]
+expr := cnd_expr
+
+assign_stmt := access_expr '=' expr ';'
+block_stmt := '{' { stmt } '}'
+if_stmt := 'if' expr block_stmt [ 'else' if_stmt | block_expr ]
+run_stmt := 'run' id ';'
+assert_stmt := 'assert' expr ';'
+bind_atom := id '=' access_expr
+bind_list := [ bind_atom { ',' bind_atom } [ ',' ] ]
+instance_stmt := id '!' '(' bind_list ')' ';'
+
+stmt := assign_stmt | block_stmt | if_stmt | run_stmt | var_decl | const_decl | assert_stmt
+
+type_atom := build_in | ( 'struct' id )
+type_spec := [ 'ghost' ] type_atom { '[' expr ']' }
+field_spec := type_spec id ';'
+struct_decl := 'struct' id '{' { field_spec } '}' ';'
+var_decl := 'var' type_spec id ';'
+const_decl := 'const' type_spec id '=' expr ';'
+
+pre_decl := 'pre' expr ';'
+post_decl := 'post' expr ';'
+sep_atom := id { '.' id }
+sep_decl := 'separated' sep_atom { ',' sep_atom } ';'
+contract_decl := pre_decl | post_decl | sep_decl
+
+arg_type_spec := type_spec [ '[' ']' ]
+arg := arg_type_spec id
+arg_list := [ arg { ',' arg } [ ',' ] ]
+template_decl := 'template' id '(' arg_list ')' [ contract_decl ] block_stmt
+sequence_decl := 'sequence' id [ contract_decl ] block_stmt
+
+decl := var_decl | const_decl | struct_decl | template_decl | sequence_decl
+
+program := { decl }
