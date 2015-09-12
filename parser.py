@@ -46,7 +46,9 @@ def prepare_grammar():
 
 	DOT = pp.Literal('.')
 	GRAVE = pp.Literal('`')
+	LPAR = pp.Literal('(')
 	LSPAR = pp.Literal('[')
+	RPAR = pp.Literal(')')
 	RSPAR = pp.Literal(']')
 
 	ident = PUSH(pp.Word(pp.alphas + '_', pp.alphanums + '_'))
@@ -64,7 +66,9 @@ def prepare_grammar():
 	flow_expr = ident ^ REDUCE(GRAVE + ident, 1, '`')
 	access_expr = flow_expr + ref_access
 
-	expr << (access_expr ^ digit)
+	top_expr = access_expr ^ digit ^ (LPAR + expr + RPAR) # add # operator
+
+	expr << top_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
