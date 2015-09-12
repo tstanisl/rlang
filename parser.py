@@ -26,6 +26,20 @@ if sys.version_info.major != 3:
 	raise Exception("Python 3.x required")
 
 def prepare_grammar():
+	import pyparsing as pp
+	stack = []
+	def PUSH(p):
+		return p.setParseAction(lambda t: stack.append(t[0]))
+
+	ident = PUSH(pp.Word(pp.alphas + '_', pp.alphanums + '_'))
+
+	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
+	hex_digit = pp.Regex(r'0x[0-9a-fA-F]+').setParseAction(lambda toks: int(toks[0][2:],16))
+	bin_digit = pp.Regex(r'0b[01]+').setParseAction(lambda toks: int(toks[0][2:],2))
+	digit = PUSH(dec_digit ^ hex_digit ^ bin_digit)
+
+	return ident ^ digit
+
 	stack = []
 	def pop(id, n, extra = []):
 		print("pop(id={}, n={})".format(id, n))
