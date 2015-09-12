@@ -2,7 +2,8 @@ struct_access := '.' id
 array_access := '[' expr ']'
 
 ref_path := { struct_access | array_access }
-access_expr := atom ref_path [ '\'' ]
+flow_expr = id | ( '`' id )
+access_expr := flow_expr ref_path [ '\'' ]
 top_expr := access_expr | digit | ( '(' expr ')' ) | ( '#' sep_atom ) 
 unr_expr := top_expr | ( '!' | '+' | '-' unr_expr )
 mul_expr := unr_expr { '*' | '/' | '%' unr_expr }

@@ -29,7 +29,25 @@ def prepare_grammar():
 	import pyparsing as pp
 	stack = []
 	def PUSH(p):
+		print(stack)
 		return p.setParseAction(lambda t: stack.append(t[0]))
+
+	def REDUCE(p, n, head):
+		def handler(t):
+			print("REDUCE")
+			print(stack)
+			tail = stack[-n:]
+			del stack[-n:]
+			stack.append([head] + tail)
+			return t
+		return p.copy().setParseAction(handler)
+
+	FLAG = lambda p: pp.Optional(p.setParseAction(pp.replaceWith(True)), default = False)
+
+	DOT = pp.Literal('.')
+	GRAVE = pp.Literal('`')
+	LSPAR = pp.Literal('[')
+	RSPAR = pp.Literal(']')
 
 	ident = PUSH(pp.Word(pp.alphas + '_', pp.alphanums + '_'))
 
@@ -38,7 +56,20 @@ def prepare_grammar():
 	bin_digit = pp.Regex(r'0b[01]+').setParseAction(lambda toks: int(toks[0][2:],2))
 	digit = PUSH(dec_digit ^ hex_digit ^ bin_digit)
 
-	return ident ^ digit
+	expr = pp.Forward()
+
+	struct_access = REDUCE(DOT + ident, 2, '.')
+	array_access = REDUCE(LSPAR + expr + RSPAR, 2, '[')
+	ref_access = pp.ZeroOrMore(struct_access ^ array_access)
+	flow_expr = ident ^ REDUCE(GRAVE + ident, 1, '`')
+	access_expr = flow_expr + ref_access
+
+	expr << (access_expr ^ digit)
+
+	grammar = expr.copy()
+	grammar.setParseAction(lambda t: stack.pop())
+
+	return grammar
 
 	stack = []
 	def pop(id, n, extra = []):
