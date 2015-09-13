@@ -64,8 +64,11 @@ def prepare_grammar():
 	GRAVE = pp.Literal('`')
 	LPAR = pp.Literal('(')
 	LSPAR = pp.Literal('[')
+	MINUS = pp.Literal('-')
+	NOT = pp.Literal('!')
 	RPAR = pp.Literal(')')
 	RSPAR = pp.Literal(']')
+	PLUS = pp.Literal('+')
 
 	ident = PUSH(pp.Word(pp.alphas + '_', pp.alphanums + '_'))
 
@@ -84,7 +87,13 @@ def prepare_grammar():
 
 	top_expr = access_expr ^ digit ^ (LPAR + expr + RPAR) # add # operator
 
-	expr << top_expr
+	unr_expr = pp.Forward()
+	pos_expr = PLUS + unr_expr
+	neg_expr = REDUCE(MINUS + unr_expr, 1, "-unary")
+	not_expr = REDUCE(NOT + unr_expr, 1, "!")
+	unr_expr << (pos_expr ^ neg_expr ^ not_expr ^ top_expr)
+
+	expr << unr_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
