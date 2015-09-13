@@ -35,15 +35,28 @@ def prepare_grammar():
 		return t[0]
 	PUSH = lambda p: p.setParseAction(__push) #lambda t: stack.append(t[0]))
 
-	def REDUCE(p, n, head):
+	def REDUCE(parser, n, head = None):
 		def handler(t):
-			print("REDUCE")
-			print(stack)
-			tail = stack[-n:]
+			print("REDUCE(n={}, head={})".format(n, head))
+			print("pre:  {}".format(stack))
+			if head is None:
+				print("no head")
+				item = stack[-n] + stack[-n+1:]
+				print("no head'")
+			elif isinstance(head, str):
+				print("str head")
+				item = [head] + stack[-n:]
+			else:
+				print("idx head")
+				s = -n + head
+				print(s)
+				item = [stack[s]] + stack[-n:s] + stack[s+1:]
+			print("item: ", item)
 			del stack[-n:]
-			stack.append([head] + tail)
+			stack.append(item)
+			print("post: {}".format(stack))
 			return t
-		return p.copy().setParseAction(handler)
+		return parser.copy().setParseAction(handler)
 
 	FLAG = lambda p: pp.Optional(p.setParseAction(pp.replaceWith(True)), default = False)
 
