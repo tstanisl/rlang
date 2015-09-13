@@ -129,7 +129,10 @@ def prepare_grammar():
 
 	expr << cond_expr
 
-	grammar = expr.copy()
+	assign_stmt = REDUCE(access_expr + '=' + expr + ';', 2, '=')
+
+	stmt = assign_stmt
+	grammar = expr.copy() ^ stmt
 	grammar.setParseAction(lambda t: stack.pop())
 
 	return grammar
