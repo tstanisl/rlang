@@ -62,16 +62,22 @@ def prepare_grammar():
 
 	DIV = pp.Literal('/')
 	DOT = pp.Literal('.')
+	EQ = pp.Literal("==")
+	GE = pp.Literal(">=")
+	GT = pp.Literal(">")
 	GRAVE = pp.Literal('`')
+	LE = pp.Literal("<=")
 	LPAR = pp.Literal('(')
 	LSPAR = pp.Literal('[')
+	LT = pp.Literal("<")
 	MINUS = pp.Literal('-')
 	MOD = pp.Literal('%')
 	MUL = pp.Literal('*')
 	NOT = pp.Literal('!')
+	PLUS = pp.Literal('+')
 	RPAR = pp.Literal(')')
 	RSPAR = pp.Literal(']')
-	PLUS = pp.Literal('+')
+	NEQ = pp.Literal("!=")
 
 	ident = PUSH(pp.Word(pp.alphas + '_', pp.alphanums + '_'))
 
@@ -102,7 +108,12 @@ def prepare_grammar():
 	sum_expr = mul_expr + pp.ZeroOrMore(\
 		REDUCE(PUSH(PLUS ^ MINUS) + mul_expr, 3, 1))
 
-	expr << sum_expr
+	CMP = LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT
+	cmp_tail1 = REDUCE(PUSH(CMP) + sum_expr, 3, '<>')
+	cmp_tail2 = REDUCE(PUSH(CMP) + sum_expr, 3)
+	cmp_expr = sum_expr + pp.Optional(cmp_tail1 + pp.ZeroOrMore(cmp_tail2))
+
+	expr << cmp_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
