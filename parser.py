@@ -143,7 +143,11 @@ def prepare_grammar():
 	else_tail = ELSE + (block_stmt ^ if_stmt)
 	if_stmt = REDUCE(IF + expr + block_stmt + (else_tail ^ REDUCE(pp.Empty(), 0, '{')), 3, 'if')
 
-	stmt << (assign_stmt ^ block_stmt ^ if_stmt)
+	bind_atom = REDUCE(REDUCE(ident + '=' + expr, 2, 0) + pp.Empty(), 2)
+	bind_list = PUSH_NULL + pp.Optional(bind_atom + pp.ZeroOrMore(',' + bind_atom) + pp.Optional(','))
+	instance_stmt = REDUCE(ident + '!' + LPAR + bind_list + RPAR + ';', 2, 'instance')
+
+	stmt << (assign_stmt ^ block_stmt ^ if_stmt ^ instance_stmt)
 
 	grammar = expr.copy() ^ stmt
 	grammar.setParseAction(lambda t: stack.pop())
