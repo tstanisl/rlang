@@ -28,9 +28,12 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	import pyparsing as pp
 	stack = []
-	def PUSH(p):
-		print(stack)
-		return p.setParseAction(lambda t: stack.append(t[0]))
+	def __push(t):
+		print("PUSH(", t[0], ")")
+		stack.append(t[0])
+		print("post: ", stack)
+		return t[0]
+	PUSH = lambda p: p.setParseAction(__push) #lambda t: stack.append(t[0]))
 
 	def REDUCE(p, n, head):
 		def handler(t):
