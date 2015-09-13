@@ -19,12 +19,13 @@ assign_stmt := access_expr '=' expr ';'
 block_stmt := '{' { stmt } '}'
 if_stmt := 'if' expr block_stmt [ 'else' if_stmt | block_stmt ]
 run_stmt := 'run' id ';'
+return_stmt := 'return' ';'
 assert_stmt := 'assert' expr ';'
 bind_atom := id '=' access_expr
 bind_list := [ bind_atom { ',' bind_atom } [ ',' ] ]
 instance_stmt := id '!' '(' bind_list ')' ';'
 
-stmt := assign_stmt | block_stmt | if_stmt | run_stmt | var_decl | const_decl | assert_stmt
+stmt := assign_stmt | block_stmt | if_stmt | run_stmt | var_decl | const_decl | assert_stmt | return_stmt
 
 init_atom := expr | ( ref_path '=' expr )
 init_list := init_atom { ',' init_atom } [ ',' ]
