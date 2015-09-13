@@ -60,11 +60,14 @@ def prepare_grammar():
 
 	FLAG = lambda p: pp.Optional(p.setParseAction(pp.replaceWith(True)), default = False)
 
+	DIV = pp.Literal('/')
 	DOT = pp.Literal('.')
 	GRAVE = pp.Literal('`')
 	LPAR = pp.Literal('(')
 	LSPAR = pp.Literal('[')
 	MINUS = pp.Literal('-')
+	MOD = pp.Literal('%')
+	MUL = pp.Literal('*')
 	NOT = pp.Literal('!')
 	RPAR = pp.Literal(')')
 	RSPAR = pp.Literal(']')
@@ -93,7 +96,10 @@ def prepare_grammar():
 	not_expr = REDUCE(NOT + unr_expr, 1, "!")
 	unr_expr << (pos_expr ^ neg_expr ^ not_expr ^ top_expr)
 
-	expr << unr_expr
+	mul_expr = unr_expr + pp.ZeroOrMore(\
+		REDUCE(PUSH(MUL ^ DIV ^ MOD) + unr_expr, 3, 1))
+
+	expr << mul_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
