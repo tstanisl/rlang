@@ -70,6 +70,7 @@ def prepare_grammar():
 	GT = pp.Literal(">")
 	GRAVE = pp.Literal('`')
 	IND = pp.Literal("==>")
+	LBRA = pp.Literal("{")
 	LE = pp.Literal("<=")
 	LPAR = pp.Literal('(')
 	LSPAR = pp.Literal('[')
@@ -81,6 +82,7 @@ def prepare_grammar():
 	NOT = pp.Literal('!')
 	OR = pp.Literal('||')
 	PLUS = pp.Literal('+')
+	RBRA = pp.Literal("}")
 	RPAR = pp.Literal(')')
 	RSPAR = pp.Literal(']')
 
@@ -131,9 +133,12 @@ def prepare_grammar():
 
 	expr << cond_expr
 
+	stmt = pp.Forward()
 	assign_stmt = REDUCE(access_expr + '=' + expr + ';', 2, '=')
+	block_stmt = REDUCE(LBRA, 0, '{') + pp.ZeroOrMore(REDUCE(stmt, 2)) + RBRA
 
-	stmt = assign_stmt
+	stmt << (assign_stmt ^ block_stmt)
+
 	grammar = expr.copy() ^ stmt
 	grammar.setParseAction(lambda t: stack.pop())
 
