@@ -60,12 +60,14 @@ def prepare_grammar():
 
 	FLAG = lambda p: pp.Optional(p.setParseAction(pp.replaceWith(True)), default = False)
 
+	AND = pp.Literal('&&')
 	DIV = pp.Literal('/')
 	DOT = pp.Literal('.')
-	EQ = pp.Literal("==")
+	EQ = pp.Literal("==") + pp.NotAny(pp.Literal('>')) # conflict with ==>
 	GE = pp.Literal(">=")
 	GT = pp.Literal(">")
 	GRAVE = pp.Literal('`')
+	IND = pp.Literal("==>")
 	LE = pp.Literal("<=")
 	LPAR = pp.Literal('(')
 	LSPAR = pp.Literal('[')
@@ -73,11 +75,12 @@ def prepare_grammar():
 	MINUS = pp.Literal('-')
 	MOD = pp.Literal('%')
 	MUL = pp.Literal('*')
+	NEQ = pp.Literal("!=")
 	NOT = pp.Literal('!')
+	OR = pp.Literal('||')
 	PLUS = pp.Literal('+')
 	RPAR = pp.Literal(')')
 	RSPAR = pp.Literal(']')
-	NEQ = pp.Literal("!=")
 
 	ident = PUSH(pp.Word(pp.alphas + '_', pp.alphanums + '_'))
 
@@ -113,7 +116,14 @@ def prepare_grammar():
 	cmp_tail2 = REDUCE(PUSH(CMP) + sum_expr, 3)
 	cmp_expr = sum_expr + pp.Optional(cmp_tail1 + pp.ZeroOrMore(cmp_tail2))
 
-	expr << cmp_expr
+	and_expr = pp.Forward()
+	and_expr << cmp_expr + pp.Optional(REDUCE(AND + and_expr, 2, '&&'))
+	orr_expr = pp.Forward()
+	orr_expr << and_expr + pp.Optional(REDUCE(OR + orr_expr, 2, '||'))
+	ind_expr = pp.Forward()
+	ind_expr << orr_expr + pp.Optional(REDUCE(IND + ind_expr, 2, '==>'))
+
+	expr << ind_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
