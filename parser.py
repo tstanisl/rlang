@@ -136,8 +136,13 @@ def prepare_grammar():
 	stmt = pp.Forward()
 	assign_stmt = REDUCE(access_expr + '=' + expr + ';', 2, '=')
 	block_stmt = REDUCE(LBRA, 0, '{') + pp.ZeroOrMore(REDUCE(stmt, 2)) + RBRA
+	if_stmt = pp.Forward()
+	IF = pp.Keyword('if')
+	ELSE = pp.Keyword('else')
+	else_tail = ELSE + (block_stmt ^ if_stmt)
+	if_stmt = REDUCE(IF + expr + block_stmt + (else_tail ^ REDUCE(pp.Empty(), 0, '{')), 3, 'if')
 
-	stmt << (assign_stmt ^ block_stmt)
+	stmt << (assign_stmt ^ block_stmt ^ if_stmt)
 
 	grammar = expr.copy() ^ stmt
 	grammar.setParseAction(lambda t: stack.pop())
