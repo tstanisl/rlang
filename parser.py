@@ -99,7 +99,10 @@ def prepare_grammar():
 	mul_expr = unr_expr + pp.ZeroOrMore(\
 		REDUCE(PUSH(MUL ^ DIV ^ MOD) + unr_expr, 3, 1))
 
-	expr << mul_expr
+	sum_expr = mul_expr + pp.ZeroOrMore(\
+		REDUCE(PUSH(PLUS ^ MINUS) + mul_expr, 3, 1))
+
+	expr << sum_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
