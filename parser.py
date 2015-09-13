@@ -123,7 +123,11 @@ def prepare_grammar():
 	ind_expr = pp.Forward()
 	ind_expr << orr_expr + pp.Optional(REDUCE(IND + ind_expr, 2, '==>'))
 
-	expr << ind_expr
+	cond_expr = pp.Forward()
+	cond_tail = REDUCE('?' + cond_expr + ':' + cond_expr, 3, '?')
+	cond_expr << (ind_expr + pp.Optional(cond_tail))
+
+	expr << cond_expr
 
 	grammar = expr.copy()
 	grammar.setParseAction(lambda t: stack.pop())
