@@ -34,6 +34,7 @@ def prepare_grammar():
 		print("post: ", stack)
 		return t[0]
 	PUSH = lambda p: p.copy().setParseAction(__push) #lambda t: stack.append(t[0]))
+	PUSH_NULL = pp.Empty().setParseAction(lambda t: stack.append([]))
 
 	def REDUCE(parser, n, head = None):
 		def handler(t):
