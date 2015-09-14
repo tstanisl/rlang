@@ -15,6 +15,8 @@ imp_expr := orr_expr [ '==>' imp_expr ]
 cnd_expr := imp_expr [ '?' cnd_expr ':' cnd_expr ]
 expr := cnd_expr
 
+# except operator a '~=' b 'except' '{' ref_path_list '}'
+
 assign_stmt := access_expr '=' expr ';'
 block_stmt := '{' { stmt } '}'
 if_stmt := 'if' expr block_stmt [ 'else' if_stmt | block_stmt ]
