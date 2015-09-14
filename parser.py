@@ -61,7 +61,7 @@ def prepare_grammar():
 			return t
 		return parser.copy().setParseAction(handler)
 
-	FLAG = lambda p: pp.Optional(p.setParseAction(pp.replaceWith(True)), default = False)
+	FLAG = lambda p: pp.Optional(p.copy().setParseAction(pp.replaceWith(True)), default = False)
 
 	AND = pp.Literal('&&')
 	DIV = pp.Literal('/')
@@ -150,8 +150,14 @@ def prepare_grammar():
 	run_stmt = REDUCE(pp.Keyword('run') + PUSH(ident) + ';', 1, 'run')
 	assert_stmt = REDUCE(pp.Keyword('assert') + expr + ';', 1, 'assert')
 
-	stmt << (assign_stmt ^ block_stmt ^ if_stmt ^ instance_stmt ^ return_stmt\
-		^ run_stmt ^ assert_stmt)
+	build_in = pp.Keyword('int') ^ pp.Keyword('bit')
+	type_atom = PUSH(build_in) ^ REDUCE(pp.Keyword('struct') + ident, 1, 'struct')
+	type_spec = type_atom + PUSH_NULL + pp.ZeroOrMore(REDUCE(LSPAR + expr + RSPAR, 2))
+	var_decl = REDUCE(pp.Keyword('var') + type_spec + ident + ';', 3, 'var')
+	#var_decl = PUSH(pp.Keyword('ghost'))
+
+	stmt << (block_stmt ^ if_stmt ^ instance_stmt ^ return_stmt ^ run_stmt\
+		^ assert_stmt ^ var_decl ^ assign_stmt)
 
 	grammar = expr.copy() ^ stmt
 	grammar.setParseAction(lambda t: stack.pop())
