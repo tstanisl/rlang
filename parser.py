@@ -146,8 +146,9 @@ def prepare_grammar():
 	bind_atom = REDUCE(REDUCE(ident + '=' + expr, 2, 0) + pp.Empty(), 2)
 	bind_list = PUSH_NULL + pp.Optional(bind_atom + pp.ZeroOrMore(',' + bind_atom) + pp.Optional(','))
 	instance_stmt = REDUCE(ident + '!' + LPAR + bind_list + RPAR + ';', 2, 'instance')
+	return_stmt = REDUCE(pp.Keyword('return') + ';', 0, 'return')
 
-	stmt << (assign_stmt ^ block_stmt ^ if_stmt ^ instance_stmt)
+	stmt << (assign_stmt ^ block_stmt ^ if_stmt ^ instance_stmt ^ return_stmt)
 
 	grammar = expr.copy() ^ stmt
 	grammar.setParseAction(lambda t: stack.pop())
