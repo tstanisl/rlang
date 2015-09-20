@@ -68,7 +68,7 @@ def prepare_grammar():
 			return t
 		assert sort == 'bool'
 		tmp = get_temporary('int')
-		print("(define-fun {} () Int (ite {} 1 0))".format(tmp, t))
+		emit("(define-fun {} () Int (ite {} 1 0))".format(tmp, t))
 		return tmp
 
 	def to_bool(t):
@@ -77,7 +77,7 @@ def prepare_grammar():
 			return t
 		assert sort == 'int'
 		tmp = get_temporary('bool')
-		print("(define-fun {} () Bool (distinct 0 {}))".format(tmp, t))
+		emit("(define-fun {} () Bool (distinct 0 {}))".format(tmp, t))
 		return tmp
 
 	def to_smt2_sort(sort):
@@ -108,7 +108,7 @@ def prepare_grammar():
 					op1 -= op2
 				continue
 			result = get_temporary()
-			print("(define-fun {} () Int ({} {} {}))".format(result, t[i], op1, op2))
+			emit("(define-fun {} () Int ({} {} {}))".format(result, t[i], op1, op2))
 			op1 = result
 		return op1
 	add_expr.setParseAction(add_expr_handle)
@@ -143,13 +143,13 @@ def prepare_grammar():
 				op1 = to_int(op1)
 				op2 = to_int(op2)
 			tmp = get_temporary('bool')
-			print("(define-fun {} () Bool ({} {} {}))".format(\
+			emit("(define-fun {} () Bool ({} {} {}))".format(\
 				tmp, smt2_cmp[op], op1, op2))
 			res.append(tmp)
 		if len(res) == 1:
 			return res
 		tmp = get_temporary('bool')
-		print("(define-fun {} () Bool (and {}))".format(\
+		emit("(define-fun {} () Bool (and {}))".format(\
 			tmp, ' '.join(res)))
 		return tmp
 
@@ -164,7 +164,7 @@ def prepare_grammar():
 		res = get_temporary('bool')
 		ands = [to_bool(x) for x in t]
 
-		print("(define-fun {} () Bool (and {}))".format(\
+		emit("(define-fun {} () Bool (and {}))".format(\
 			res, ' '.join(ands)))
 		return res
 	and_expr.setParseAction(and_expr_handle)
@@ -177,7 +177,7 @@ def prepare_grammar():
 		res = get_temporary('bool')
 		ors = [to_bool(x) for x in t]
 
-		print("(define-fun {} () Bool (or {}))".format(\
+		emit("(define-fun {} () Bool (or {}))".format(\
 			res, ' '.join(ors)))
 		return res
 	or_expr.setParseAction(or_expr_handle)
@@ -190,7 +190,7 @@ def prepare_grammar():
 		res = get_temporary('bool')
 		imps = [to_bool(x) for x in t]
 
-		print("(define-fun {} () Bool (=> {}))".format(\
+		emit("(define-fun {} () Bool (=> {}))".format(\
 			res, ' '.join(imps)))
 		return res
 	imp_expr.setParseAction(imp_expr_handle)
@@ -207,7 +207,7 @@ def prepare_grammar():
 		t[0] = get_storage(varname)
 		sort = to_smt2_sort(var_sort[varname])
 		src = to_int(t[1])
-		print("(define-fun {} () Int {})".format(t[0], src))
+		emit("(define-fun {} () Int {})".format(t[0], src))
 
 	assign_stmt.setParseAction(assign_stmt_handle)
 
@@ -223,18 +223,18 @@ def prepare_grammar():
 				 "variable '{}' redefined".format(varname))
 		var_age[varname] = 0
 		var_sort[varname] = 'int'
-		print("(declare-fun {} () Int)".format(get_storage(varname)))
+		emit("(declare-fun {} () Int)".format(get_storage(varname)))
 	var_decl.setParseAction(var_decl_check)
 
 	ASSERT = pp.Suppress(pp.Keyword('assert'))
 	assert_stmt = ASSERT + expr + SCOLON;
 	def assert_stmt_handle(s,l,t):
-		print('(echo "assert:{}")'.format(l))
+		emit('(echo "assert:{}")'.format(l))
 		res = to_bool(t[0])
-		print("(push 1)")
-		print("(assert (not {}))".format(res))
-		print("(check-sat)")
-		print("(pop 1)")
+		emit("(push 1)")
+		emit("(assert (not {}))".format(res))
+		emit("(check-sat)")
+		emit("(pop 1)")
 
 	assert_stmt.setParseAction(assert_stmt_handle)
 
@@ -242,7 +242,7 @@ def prepare_grammar():
 	assume_stmt = ASSUME + expr + SCOLON
 	def assume_stmt_handle(s,l,t):
 		res = to_bool(t[0])
-		print("(assert {})".format(res))
+		emit("(assert {})".format(res))
 	assume_stmt.setParseAction(assume_stmt_handle)
 
 	stmt = var_decl ^ assign_stmt ^ assert_stmt ^ assume_stmt
@@ -254,7 +254,9 @@ def prepare_grammar():
 	return grammar
 
 def emit(smt2):
-	pass
+	print(smt2)
+	if emit.pipe:
+		emit.pipe.stdin.write(smt2.encode())
 
 def main():
 	import sys
@@ -269,7 +271,8 @@ def main():
 		import shlex, subprocess
 		args = shlex.split(sys.argv[2])
 		try:
-			emit.pipe = subprocess.Popen(args)
+			emit.pipe = subprocess.Popen(args, stdin = subprocess.PIPE,\
+				stdout = subprocess.PIPE)
 		except:
 			sys.exit("failed to execute: " + sys.argv[2])
 
@@ -279,7 +282,7 @@ def main():
 		print("{}:{}:error: {}\n\t{}".format(e.lineno, e.col, e.msg, e.line),
 			file = sys.stderr)
 	try:
-		print("(set-logic QF_AUFLIA)")
+		emit("(set-logic QF_AUFLIA)")
 		ast = grammar.parseFile(in_file, True)
 	except pp.ParseException as e:
 		perror(e)
