@@ -71,6 +71,15 @@ def prepare_grammar():
 		print("(define-fun {} () Int (ite {} 1 0))".format(tmp, t))
 		return tmp
 
+	def to_bool(t):
+		sort = get_sort(t)
+		if sort == 'bool':
+			return t
+		assert sort == 'int'
+		tmp = get_temporary('bool')
+		print("(define-fun {} () Bool (distinct 0 {}))".format(tmp, t))
+		return tmp
+
 	def to_smt2_sort(sort):
 		if sort == 'bool':
 			return 'Bool'
