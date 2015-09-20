@@ -198,7 +198,14 @@ def prepare_grammar():
 
 	assert_stmt.setParseAction(assert_stmt_handle)
 
-	stmt = var_decl ^ assign_stmt ^ assert_stmt
+	ASSUME = pp.Suppress(pp.Keyword('assume'))
+	assume_stmt = ASSUME + expr + SCOLON
+	def assume_stmt_handle(s,l,t):
+		res = to_bool(t[0])
+		print("(assert {})".format(res))
+	assume_stmt.setParseAction(assume_stmt_handle)
+
+	stmt = var_decl ^ assign_stmt ^ assert_stmt ^ assume_stmt
 	grammar = pp.ZeroOrMore(stmt)
 
 	comment = pp.cppStyleComment()
