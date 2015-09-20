@@ -28,11 +28,22 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	import pyparsing as pp
 
+	variables = {}
+
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
-	type_spec = pp.Keyword('int')
+	INT = pp.Keyword('int')
+	type_spec = INT
 
 	SCOLON = pp.Suppress(';')
-	var_decl = pp.Keyword('var') + type_spec + ident + SCOLON
+	VAR = pp.Suppress(pp.Keyword('var'))
+	var_decl = VAR + type_spec + ident + SCOLON
+	def var_decl_check(s,l,t):
+		varname = t[1]
+		if varname in variables:
+			raise pp.ParseFatalException(s, l,\
+				 "variable '{}' redefined".format(varname))
+		variables[varname] = True
+	var_decl.setParseAction(var_decl_check)
 
 	stmt = var_decl
 	grammar = pp.ZeroOrMore(stmt)
