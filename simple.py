@@ -28,30 +28,53 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	import pyparsing as pp
 
-	variables = {}
+	var_age = {}
+	var_sort = {}
+	tmp_sort = []
 
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
 	digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
 
 	def check_varname(s,l,t):
 		varname = t[0]
-		if varname not in variables:
+		if varname not in var_age:
 			raise pp.ParseFatalException(s, l,\
 				 "undefined variable '{}'".format(varname))
 		return varname
 
 	def get_storage(varname):
-		return "{}${}".format(varname, variables[varname])
+		return "{}${}".format(varname, var_age[varname])
 
-	def get_temporary():
-		get_temporary.tmp_count += 1
-		return "$" + str(get_temporary.tmp_count - 1)
-
-	get_temporary.tmp_count = 0
+	def get_temporary(sort = 'int'):
+		tmp_sort.append(sort)
+		return "${}".format(len(tmp_sort) - 1)
 
 	def eident_handle(s,l,t):
 		varname = check_varname(s,l,t)
 		return get_storage(varname)
+
+	def get_sort(t):
+		if isinstance(t, int):
+			return 'int'
+		assert isinstance(t, str)
+		if t[0] == '$':
+			return tmp_sort[int(t[1:])]
+		varname = t.split('$', maxsplit = 1)[0]
+		return var_sort[varname]
+
+	def to_int(t):
+		sort = get_sort(t)
+		if sort == 'int':
+			return t
+		assert sort == 'bool'
+		tmp = get_temporary('int')
+		print("(define-fun {} () Int (ite {} 1 0))".format(tmp, t))
+		return tmp
+
+	def to_smt2_sort(sort):
+		if sort == 'bool':
+			return 'Bool'
+		return 'Int'
 
 	eident = ident.copy()
 	eident.setParseAction(eident_handle)
@@ -64,19 +87,21 @@ def prepare_grammar():
 	MINUS = pp.Literal('-')
 	add_expr = top_expr + pp.ZeroOrMore((PLUS ^ MINUS) + top_expr)
 	def add_expr_handle(s,l,t):
-		prev = t[0]
+		op1 = t[0]
 		for i in range(1, len(t), 2):
-			if isinstance(prev, int) and isinstance(t[i + 1], int):
+			op1 = to_int(op1)
+			op2 = to_int(t[i + 1])
+			# constant folding
+			if isinstance(op1, int) and isinstance(op2, int):
 				if t[i] == '+':
-					prev += t[i + 1]
+					op1 += op2
 				else:
-					prev -= t[i + 1]
+					op1 -= op2
 				continue
 			result = get_temporary()
-			print("(define-fun {} () Int ({} {} {}))".format(result, t[i], prev, t[i + 1]))
-			prev = result
-
-		return prev
+			print("(define-fun {} () Int ({} {} {}))".format(result, t[i], op1, op2))
+			op1 = result
+		return op1
 	add_expr.setParseAction(add_expr_handle)
 
 	expr << add_expr;
@@ -87,9 +112,11 @@ def prepare_grammar():
 	assign_stmt = ident + EQ + expr + SCOLON
 	def assign_stmt_handle(s,l,t):
 		varname = check_varname(s,l,t)
-		variables[varname] += 1
+		var_age[varname] += 1
 		t[0] = get_storage(varname)
-		print("(define-fun {} () Int {})".format(t[0], t[1]))
+		sort = to_smt2_sort(var_sort[varname])
+		src = to_int(t[1])
+		print("(define-fun {} () Int {})".format(t[0], src))
 
 	assign_stmt.setParseAction(assign_stmt_handle)
 
@@ -100,10 +127,11 @@ def prepare_grammar():
 	var_decl = VAR + type_spec + ident + SCOLON
 	def var_decl_check(s,l,t):
 		varname = t[1]
-		if varname in variables:
+		if varname in var_age:
 			raise pp.ParseFatalException(s, l,\
 				 "variable '{}' redefined".format(varname))
-		variables[varname] = 0
+		var_age[varname] = 0
+		var_sort[varname] = 'int'
 		print("(declare-fun {} () Int)".format(get_storage(varname)))
 	var_decl.setParseAction(var_decl_check)
 
