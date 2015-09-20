@@ -73,7 +73,7 @@ def prepare_grammar():
 					prev -= t[i + 1]
 				continue
 			result = get_temporary()
-			print("(define-fun {} () ({} {} {}))".format(result, t[i], prev, t[i + 1]))
+			print("(define-fun {} () Int ({} {} {}))".format(result, t[i], prev, t[i + 1]))
 			prev = result
 
 		return prev
@@ -89,6 +89,7 @@ def prepare_grammar():
 		varname = check_varname(s,l,t)
 		variables[varname] += 1
 		t[0] = get_storage(varname)
+		print("(define-fun {} () Int {})".format(t[0], t[1]))
 
 	assign_stmt.setParseAction(assign_stmt_handle)
 
@@ -103,6 +104,7 @@ def prepare_grammar():
 			raise pp.ParseFatalException(s, l,\
 				 "variable '{}' redefined".format(varname))
 		variables[varname] = 0
+		print("(declare-fun {} () Int)".format(get_storage(varname)))
 	var_decl.setParseAction(var_decl_check)
 
 	stmt = var_decl ^ assign_stmt
@@ -127,8 +129,8 @@ def main():
 		print("{}:{}:error: {}\n\t{}".format(e.lineno, e.col, e.msg, e.line),
 			file = sys.stderr)
 	try:
+		print("(set-logic QF_AUFLIA)")
 		ast = grammar.parseFile(in_file, True)
-		print(ast)
 	except pp.ParseException as e:
 		perror(e)
 	except pp.ParseFatalException as e:
