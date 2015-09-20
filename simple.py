@@ -253,6 +253,9 @@ def prepare_grammar():
 
 	return grammar
 
+def emit(smt2):
+	pass
+
 def main():
 	import sys
 	import pyparsing as pp
@@ -260,6 +263,15 @@ def main():
 	in_file = sys.stdin
 	if len(sys.argv) > 1 and sys.argv[1] != '-':
 		in_file = open(sys.argv[1], "r")
+
+	emit.pipe = None
+	if len(sys.argv) > 2 and sys.argv[2] != '-':
+		import shlex, subprocess
+		args = shlex.split(sys.argv[2])
+		try:
+			emit.pipe = subprocess.Popen(args)
+		except:
+			sys.exit("failed to execute: " + sys.argv[2])
 
 	grammar = prepare_grammar()
 
