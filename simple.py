@@ -155,7 +155,33 @@ def prepare_grammar():
 
 	cmp_expr.setParseAction(cmp_expr_handle)
 
-	expr << cmp_expr;
+	AND = pp.Suppress('&&')
+	and_expr = cmp_expr + pp.ZeroOrMore(AND + cmp_expr)
+	def and_expr_handle(s,l,t):
+		if len(t) == 1:
+			return t
+		res = get_temporary('bool')
+		ands = [to_bool(x) for x in t]
+
+		print("(define-fun {} () Bool (and {}))".format(\
+			res, ' '.join(ands)))
+		return res
+	and_expr.setParseAction(and_expr_handle)
+
+	OR = pp.Suppress('||')
+	or_expr = and_expr + pp.ZeroOrMore(OR + and_expr)
+	def or_expr_handle(s,l,t):
+		if len(t) == 1:
+			return t
+		res = get_temporary('bool')
+		ors = [to_bool(x) for x in t]
+
+		print("(define-fun {} () Bool (or {}))".format(\
+			res, ' '.join(ors)))
+		return res
+	or_expr.setParseAction(or_expr_handle)
+
+	expr << or_expr;
 
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
