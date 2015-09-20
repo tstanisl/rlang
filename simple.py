@@ -186,7 +186,19 @@ def prepare_grammar():
 		print("(declare-fun {} () Int)".format(get_storage(varname)))
 	var_decl.setParseAction(var_decl_check)
 
-	stmt = var_decl ^ assign_stmt
+	ASSERT = pp.Suppress(pp.Keyword('assert'))
+	assert_stmt = ASSERT + expr + SCOLON;
+	def assert_stmt_handle(s,l,t):
+		print('(echo "assert:{}")'.format(l))
+		res = to_bool(t[0])
+		print("(push 1)")
+		print("(assert (not {}))".format(res))
+		print("(check-sat)")
+		print("(pop 1)")
+
+	assert_stmt.setParseAction(assert_stmt_handle)
+
+	stmt = var_decl ^ assign_stmt ^ assert_stmt
 	grammar = pp.ZeroOrMore(stmt)
 
 	comment = pp.cppStyleComment()
