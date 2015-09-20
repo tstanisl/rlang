@@ -66,7 +66,12 @@ def prepare_grammar():
 	def add_expr_handle(s,l,t):
 		prev = t[0]
 		for i in range(1, len(t), 2):
-			print("i = {}".format(i))
+			if isinstance(prev, int) and isinstance(t[i + 1], int):
+				if t[i] == '+':
+					prev += t[i + 1]
+				else:
+					prev -= t[i + 1]
+				continue
 			result = get_temporary()
 			print("(define-fun {} () ({} {} {}))".format(result, t[i], prev, t[i + 1]))
 			prev = result
