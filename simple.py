@@ -43,6 +43,12 @@ def prepare_grammar():
 	def get_storage(varname):
 		return "{}${}".format(varname, variables[varname])
 
+	def get_temporary():
+		get_temporary.tmp_count += 1
+		return "$" + str(get_temporary.tmp_count - 1)
+
+	get_temporary.tmp_count = 0
+
 	def eident_handle(s,l,t):
 		varname = check_varname(s,l,t)
 		return get_storage(varname)
@@ -50,7 +56,25 @@ def prepare_grammar():
 	eident = ident.copy()
 	eident.setParseAction(eident_handle)
 
-	expr = digit ^ eident
+	expr = pp.Forward()
+	LPAR = pp.Suppress('(')
+	RPAR = pp.Suppress(')')
+	top_expr = digit ^ eident ^ (LPAR + expr + RPAR)
+	PLUS = pp.Literal('+')
+	MINUS = pp.Literal('-')
+	add_expr = top_expr + pp.ZeroOrMore((PLUS ^ MINUS) + top_expr)
+	def add_expr_handle(s,l,t):
+		prev = t[0]
+		for i in range(1, len(t), 2):
+			print("i = {}".format(i))
+			result = get_temporary()
+			print("(define-fun {} () ({} {} {}))".format(result, t[i], prev, t[i + 1]))
+			prev = result
+
+		return prev
+	add_expr.setParseAction(add_expr_handle)
+
+	expr << add_expr;
 
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
