@@ -229,11 +229,19 @@ def prepare_grammar():
 	ASSERT = pp.Suppress(pp.Keyword('assert'))
 	assert_stmt = ASSERT + expr + SCOLON;
 	def assert_stmt_handle(s,l,t):
-		emit('(echo "assert:{}")'.format(l))
+		#emit('(echo "assert:{}")'.format(l))
 		res = to_bool(t[0])
 		emit("(push 1)")
 		emit("(assert (not {}))".format(res))
-		emit("(check-sat)")
+		ans = checksat()
+		if ans == 'unsat':
+			ans = 'Valid'
+		elif ans == 'sat':
+			ans = 'Invalid'
+		else:
+			ans = 'Unknown'
+
+		print('assert:{}: {}'.format(l, ans))
 		emit("(pop 1)")
 
 	assert_stmt.setParseAction(assert_stmt_handle)
@@ -254,9 +262,16 @@ def prepare_grammar():
 	return grammar
 
 def emit(smt2):
-	print(smt2)
 	if emit.pipe:
-		emit.pipe.stdin.write(smt2.encode())
+		emit.pipe.stdin.write(smt2 + '\n')
+		emit.pipe.stdin.flush()
+
+def checksat():
+	emit('(check-sat)')
+	if not emit.pipe:
+		return 'unknown'
+	emit.pipe.stdin.flush()
+	return emit.pipe.stdout.readline().strip()
 
 def main():
 	import sys
@@ -272,7 +287,8 @@ def main():
 		args = shlex.split(sys.argv[2])
 		try:
 			emit.pipe = subprocess.Popen(args, stdin = subprocess.PIPE,\
-				stdout = subprocess.PIPE)
+				stdout = subprocess.PIPE, universal_newlines=True,\
+				bufsize = 1)
 		except:
 			sys.exit("failed to execute: " + sys.argv[2])
 
