@@ -31,10 +31,27 @@ def prepare_grammar():
 	variables = {}
 
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+	digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
+
+	expr = digit
+
+	EQ = pp.Suppress('=')
+	SCOLON = pp.Suppress(';')
+
+	assign_stmt = ident + EQ + expr + SCOLON
+	def assign_stmt_handle(s,l,t):
+		varname = str(t[0])
+		if varname not in variables:
+			raise pp.ParseFatalException(s, l,\
+				 "undefined variable '{}'".format(varname))
+		variables[varname] += 1
+		t[0] = "{}${}".format(varname, variables[varname])
+
+	assign_stmt.setParseAction(assign_stmt_handle)
+
 	INT = pp.Keyword('int')
 	type_spec = INT
 
-	SCOLON = pp.Suppress(';')
 	VAR = pp.Suppress(pp.Keyword('var'))
 	var_decl = VAR + type_spec + ident + SCOLON
 	def var_decl_check(s,l,t):
@@ -42,10 +59,10 @@ def prepare_grammar():
 		if varname in variables:
 			raise pp.ParseFatalException(s, l,\
 				 "variable '{}' redefined".format(varname))
-		variables[varname] = True
+		variables[varname] = 0
 	var_decl.setParseAction(var_decl_check)
 
-	stmt = var_decl
+	stmt = var_decl ^ assign_stmt
 	grammar = pp.ZeroOrMore(stmt)
 
 	comment = pp.cppStyleComment()
