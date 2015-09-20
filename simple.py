@@ -28,7 +28,14 @@ if sys.version_info.major != 3:
 def prepare_grammar():
 	import pyparsing as pp
 
-	grammar = pp.Empty()
+	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+	type_spec = pp.Keyword('int')
+
+	SCOLON = pp.Suppress(';')
+	var_decl = pp.Keyword('var') + type_spec + ident + SCOLON
+
+	stmt = var_decl
+	grammar = pp.ZeroOrMore(stmt)
 
 	comment = pp.cppStyleComment()
 	grammar.ignore(comment)
