@@ -155,6 +155,7 @@ def prepare_grammar():
 
 	cmp_expr.setParseAction(cmp_expr_handle)
 
+	# consider compressing AND/OR/IMP using reduce closure
 	AND = pp.Suppress('&&')
 	and_expr = cmp_expr + pp.ZeroOrMore(AND + cmp_expr)
 	def and_expr_handle(s,l,t):
@@ -181,7 +182,20 @@ def prepare_grammar():
 		return res
 	or_expr.setParseAction(or_expr_handle)
 
-	expr << or_expr;
+	IMP = pp.Suppress('==>')
+	imp_expr = or_expr + pp.ZeroOrMore(IMP + or_expr)
+	def imp_expr_handle(s,l,t):
+		if len(t) == 1:
+			return t
+		res = get_temporary('bool')
+		imps = [to_bool(x) for x in t]
+
+		print("(define-fun {} () Bool (=> {}))".format(\
+			res, ' '.join(imps)))
+		return res
+	imp_expr.setParseAction(imp_expr_handle)
+
+	expr << imp_expr;
 
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
