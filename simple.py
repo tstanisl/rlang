@@ -104,7 +104,49 @@ def prepare_grammar():
 		return op1
 	add_expr.setParseAction(add_expr_handle)
 
-	expr << add_expr;
+	LT = pp.Literal("<")
+	LE = pp.Literal("<=")
+	EQ = pp.Literal("==")
+	NEQ = pp.Literal("!=")
+	GE = pp.Literal(">=")
+	GT = pp.Literal(">")
+	CMP = LT ^ LE ^ EQ ^ NEQ ^ GE ^ GT
+
+	smt2_cmp = {
+		'<' : '<',
+		'<=' : '<=',
+		'==' : '=',
+		'!=' : 'distinct',
+		'>' : '>',
+		'>=' : '>=',
+	}
+
+	cmp_expr = add_expr + pp.ZeroOrMore(CMP + add_expr)
+	def cmp_expr_handle(s,l,t):
+		if len(t) == 1:
+			return
+		res = []
+		for i in range(1, len(t), 2):
+			op1 = t[i - 1]
+			op = t[i]
+			op2 = t[i + 1]
+			if not (op == '==' or op == '!='):
+				op1 = to_int(op1)
+				op2 = to_int(op2)
+			tmp = get_temporary('bool')
+			print("(define-fun {} () Bool ({} {} {}))".format(\
+				tmp, smt2_cmp[op], op1, op2))
+			res.append(tmp)
+		if len(res) == 1:
+			return res
+		tmp = get_temporary('bool')
+		print("(define-fun {} () Bool (and {}))".format(\
+			tmp, ' '.join(res)))
+		return tmp
+
+	cmp_expr.setParseAction(cmp_expr_handle)
+
+	expr << cmp_expr;
 
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
