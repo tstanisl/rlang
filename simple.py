@@ -41,6 +41,9 @@ def prepare_grammar():
 				 "undefined variable '{}'".format(varname))
 		return varname
 
+	def get_storage(varname):
+		return "{}${}".format(varname, variables[varname])
+
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
 
@@ -48,7 +51,7 @@ def prepare_grammar():
 	def assign_stmt_handle(s,l,t):
 		varname = check_varname(s,l,t)
 		variables[varname] += 1
-		t[0] = "{}${}".format(varname, variables[varname])
+		t[0] = get_storage(varname)
 
 	assign_stmt.setParseAction(assign_stmt_handle)
 
