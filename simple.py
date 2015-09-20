@@ -44,15 +44,24 @@ def prepare_grammar():
 
 def main():
 	import sys
+	import pyparsing as pp
 
 	in_file = sys.stdin
 	if len(sys.argv) > 1 and sys.argv[1] != '-':
 		in_file = open(sys.argv[1], "r")
 
 	grammar = prepare_grammar()
-	ast = grammar.parseFile(in_file, True)
 
-	print(ast)
+	def perror(e):
+		print("{}:{}:error: {}\n\t{}".format(e.lineno, e.col, e.msg, e.line),
+			file = sys.stderr)
+	try:
+		ast = grammar.parseFile(in_file, True)
+		print(ast)
+	except pp.ParseException as e:
+		perror(e)
+	except pp.ParseFatalException as e:
+		perror(e)
 
 if __name__ == "__main__":
 	main()
