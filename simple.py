@@ -33,7 +33,6 @@ def prepare_grammar():
 	ident = pp.Word(pp.alphas + '_', pp.alphanums + '_')
 	digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
 
-	expr = digit
 	def check_varname(s,l,t):
 		varname = t[0]
 		if varname not in variables:
@@ -43,6 +42,15 @@ def prepare_grammar():
 
 	def get_storage(varname):
 		return "{}${}".format(varname, variables[varname])
+
+	def eident_handle(s,l,t):
+		varname = check_varname(s,l,t)
+		return get_storage(varname)
+
+	eident = ident.copy()
+	eident.setParseAction(eident_handle)
+
+	expr = digit ^ eident
 
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
