@@ -34,16 +34,19 @@ def prepare_grammar():
 	digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
 
 	expr = digit
+	def check_varname(s,l,t):
+		varname = t[0]
+		if varname not in variables:
+			raise pp.ParseFatalException(s, l,\
+				 "undefined variable '{}'".format(varname))
+		return varname
 
 	EQ = pp.Suppress('=')
 	SCOLON = pp.Suppress(';')
 
 	assign_stmt = ident + EQ + expr + SCOLON
 	def assign_stmt_handle(s,l,t):
-		varname = str(t[0])
-		if varname not in variables:
-			raise pp.ParseFatalException(s, l,\
-				 "undefined variable '{}'".format(varname))
+		varname = check_varname(s,l,t)
 		variables[varname] += 1
 		t[0] = "{}${}".format(varname, variables[varname])
 
