@@ -242,7 +242,7 @@ def prepare_grammar():
 			ans = 'Unknown'
 
 		line_no = pp.lineno(l, s)
-		print('assert:{}: {}'.format(line_no, ans))
+		print('assert:{}: {}'.format(line_no, ans), file = sys.stderr)
 		emit("(pop 1)")
 
 	assert_stmt.setParseAction(assert_stmt_handle)
