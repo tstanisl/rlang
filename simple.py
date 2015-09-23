@@ -137,11 +137,14 @@ def prepare_grammar():
 		res = []
 		for i in range(1, len(t), 2):
 			op1 = t[i - 1]
+			op1_sort = get_sort(op1)
 			op = t[i]
 			op2 = t[i + 1]
-			if not (op == '==' or op == '!='):
-				op1 = to_int(op1)
-				op2 = to_int(op2)
+			op2_sort = get_sort(op2)
+			if (op1_sort != op2_sort) or (op not in ['==','!='] and op1_sort != 'int'):
+				raise pp.ParseFatalException(s, l,\
+					"incompatible types comparison: {} {} {}".format(\
+					op1_sort, op, op2_sort))
 			tmp = get_temporary('bool')
 			emit("(define-fun {} () Bool ({} {} {}))".format(\
 				tmp, smt2_cmp[op], op1, op2))
