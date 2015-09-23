@@ -92,9 +92,24 @@ def prepare_grammar():
 	LPAR = pp.Suppress('(')
 	RPAR = pp.Suppress(')')
 	top_expr = digit ^ eident ^ (LPAR + expr + RPAR)
+
+	unr_expr = pp.Forward()
+	NOT = pp.Suppress('!')
+	not_expr = NOT + unr_expr
+	def not_expr_handle(s,l,t):
+		op_sort = get_sort(t[0])
+		tmp = get_temporary('bool')
+		if op_sort == 'int':
+			emit('(define-fun {} () Bool (= 0 {}))'.format(tmp, t[0]))
+		else:
+			emit('(define-fun {} () Bool (not {}))'.format(tmp, t[0]))
+		return tmp
+	not_expr.setParseAction(not_expr_handle)
+	unr_expr << (top_expr ^ not_expr)
+
 	PLUS = pp.Literal('+')
 	MINUS = pp.Literal('-')
-	add_expr = top_expr + pp.ZeroOrMore((PLUS ^ MINUS) + top_expr)
+	add_expr = unr_expr + pp.ZeroOrMore((PLUS ^ MINUS) + unr_expr)
 	def add_expr_handle(s,l,t):
 		op1 = t[0]
 		for i in range(1, len(t), 2):
