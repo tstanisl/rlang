@@ -266,6 +266,8 @@ def emit(smt2):
 	if emit.pipe:
 		emit.pipe.stdin.write(smt2 + '\n')
 		emit.pipe.stdin.flush()
+	else:
+		print(smt2)
 
 def checksat():
 	emit('(check-sat)')
