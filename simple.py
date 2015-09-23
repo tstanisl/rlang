@@ -241,7 +241,8 @@ def prepare_grammar():
 		else:
 			ans = 'Unknown'
 
-		print('assert:{}: {}'.format(l, ans))
+		line_no = pp.lineno(l, s)
+		print('assert:{}: {}'.format(line_no, ans))
 		emit("(pop 1)")
 
 	assert_stmt.setParseAction(assert_stmt_handle)
