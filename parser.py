@@ -27,8 +27,8 @@ if sys.version_info.major != 3:
 
 def parseExpression():
 	import pyparsing as pp
-	ident = pp.Word(pp.alphas, pp.alphanums + '_')
-	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
+	ident = pp.Word(pp.alphas, pp.alphanums + '_').setParseAction(lambda t: ['ident', t[0]])
+	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda t: ['digit', int(t[0])])
 	digit = dec_digit
 
 	expr = pp.Forward()
