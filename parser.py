@@ -28,17 +28,30 @@ if sys.version_info.major != 3:
 def parseExpression():
 	import pyparsing as pp
 	ident = pp.Word(pp.alphas, pp.alphanums + '_')
-	eident = ident.copy().setParseAction(lambda t: ['ident', t[0]])
-	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda t: ['digit', int(t[0])])
+	eident = ident.copy()
+	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda t: int(t[0]))
 	digit = dec_digit
 
 	expr = pp.Forward()
 
-	LPAR = pp.Suppress('(')
-	RPAR = pp.Suppress(')')
-	top_expr = eident ^ digit ^ (LPAR + expr + RPAR)
+	top_expr = eident ^ digit
 
-	expr << top_expr
+	def make_ast(t):
+		#print("pre1 t=",t)
+		t = t[0].asList()
+		#print("pre2 t=",t)
+		ret = t[0]
+		for i in range(1, len(t), 2):
+			#print("ret = ", ret)
+			ret = [t[i], ret, t[i + 1]]
+		#print("ret = ", ret)
+		return [ret]
+	arith_expr = pp.infixNotation(top_expr, [ \
+		(pp.oneOf('/ % *'), 2, pp.opAssoc.LEFT, make_ast), \
+		(pp.oneOf('+ -'), 2, pp.opAssoc.LEFT, make_ast), \
+	])
+
+	expr << arith_expr
 
 	return expr
 
