@@ -27,7 +27,15 @@ if sys.version_info.major != 3:
 
 def parseExpression():
 	import pyparsing as pp
-	return None
+	ident = pp.Word(pp.alphas, pp.alphanums + '_')
+	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda toks: int(toks[0]))
+	digit = dec_digit
+
+	expr = pp.Forward()
+
+	expr << (digit ^ ident)
+
+	return expr
 
 def parseProgram():
 	import pyparsing as pp
@@ -46,7 +54,7 @@ def main():
 	if len(sys.argv) > 1 and sys.argv[1] != '-':
 		in_file = open(sys.argv[1], "r")
 
-	grammar = parseProgram()
+	grammar = parseExpression()
 	ast = grammar.parseFile(in_file, True)
 
 	print(ast)
