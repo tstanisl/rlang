@@ -34,7 +34,11 @@ def parseExpression():
 
 	expr = pp.Forward()
 
-	expr << (digit ^ ident)
+	LPAR = pp.Suppress('(')
+	RPAR = pp.Suppress(')')
+	top_expr = eident ^ digit ^ (LPAR + expr + RPAR)
+
+	expr << top_expr
 
 	return expr
 
