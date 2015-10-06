@@ -55,6 +55,14 @@ def parseExpression():
 
 	expr << arith_expr
 
+	return expr
+
+def parseStatement():
+	import pyparsing as pp
+	ident = pp.Word(pp.alphas, pp.alphanums + '_')
+
+	expr = parseExpression()
+
 	INT = pp.Keyword('int')
 	BIT = pp.Keyword('bit')
 	type_spec = INT ^ BIT
@@ -66,7 +74,11 @@ def parseExpression():
 	var_decl = VAR + type_spec + ident + \
 		pp.Optional(EQ + expr, default = None) + SCOLON
 
-	return var_decl
+	assign_stmt = ident + EQ + expr + SCOLON
+	assign_stmt.setParseAction(lambda t: ['='] + t.asList())
+
+	return var_decl ^ assign_stmt
+
 
 def parseProgram():
 	import pyparsing as pp
@@ -85,7 +97,8 @@ def main():
 	if len(sys.argv) > 1 and sys.argv[1] != '-':
 		in_file = open(sys.argv[1], "r")
 
-	grammar = parseExpression()
+	#grammar = parseExpression()
+	grammar = parseStatement()
 	ast = grammar.parseFile(in_file, True)
 
 	print(ast)
