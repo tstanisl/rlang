@@ -37,21 +37,17 @@ def parseExpression():
 	top_expr = eident ^ digit
 
 	def make_ast(t):
-		#print("pre1 t=",t)
 		t = t[0].asList()
-		#print("pre2 t=",t)
 		ret = t[0]
 		for i in range(1, len(t), 2):
-			#print("ret = ", ret)
 			ret = [t[i], ret, t[i + 1]]
-		#print("ret = ", ret)
 		return [ret]
-	prefix_ast = lambda t: [['<>'] + t[0].asList()]
+	comparison_ast = lambda t: [['<>'] + t[0].asList()]
 	arith_expr = pp.infixNotation(top_expr, [ \
 		(pp.oneOf('+ - !'), 1, pp.opAssoc.RIGHT,), \
 		(pp.oneOf('/ % *'), 2, pp.opAssoc.LEFT, make_ast), \
 		(pp.oneOf('+ -'), 2, pp.opAssoc.LEFT, make_ast), \
-		(pp.oneOf('< <= == != => >'), 2, pp.opAssoc.LEFT, prefix_ast), \
+		(pp.oneOf('< <= == != => >'), 2, pp.opAssoc.LEFT, comparison_ast), \
 		(pp.Literal('&&'), 2, pp.opAssoc.RIGHT, make_ast), \
 		(pp.Literal('||'), 2, pp.opAssoc.RIGHT, make_ast), \
 		(pp.Literal('==>'), 2, pp.opAssoc.RIGHT, make_ast), \
