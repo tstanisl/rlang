@@ -48,6 +48,7 @@ def parseExpression():
 		return [ret]
 	prefix_ast = lambda t: [['<>'] + t[0].asList()]
 	arith_expr = pp.infixNotation(top_expr, [ \
+		(pp.oneOf('+ - !'), 1, pp.opAssoc.RIGHT,), \
 		(pp.oneOf('/ % *'), 2, pp.opAssoc.LEFT, make_ast), \
 		(pp.oneOf('+ -'), 2, pp.opAssoc.LEFT, make_ast), \
 		(pp.oneOf('< <= == != => >'), 2, pp.opAssoc.LEFT, prefix_ast), \
