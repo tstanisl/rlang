@@ -27,6 +27,7 @@ if sys.version_info.major != 3:
 
 def parseExpression():
 	import pyparsing as pp
+
 	ident = pp.Word(pp.alphas, pp.alphanums + '_')
 	eident = ident.copy()
 	dec_digit = pp.Regex(r'0|([1-9]\d*)').setParseAction(lambda t: int(t[0]))
@@ -59,6 +60,7 @@ def parseExpression():
 
 def parseStatement():
 	import pyparsing as pp
+	pp.ParserElement.enablePackrat()
 	ident = pp.Word(pp.alphas, pp.alphanums + '_')
 
 	expr = parseExpression()
