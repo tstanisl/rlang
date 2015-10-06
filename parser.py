@@ -55,7 +55,18 @@ def parseExpression():
 
 	expr << arith_expr
 
-	return expr
+	INT = pp.Keyword('int')
+	BIT = pp.Keyword('bit')
+	type_spec = INT ^ BIT
+
+	SCOLON = pp.Suppress(';')
+	EQ = pp.Suppress('=')
+	VAR = pp.Keyword('var')
+
+	var_decl = VAR + type_spec + ident + \
+		pp.Optional(EQ + expr, default = None) + SCOLON
+
+	return var_decl
 
 def parseProgram():
 	import pyparsing as pp
