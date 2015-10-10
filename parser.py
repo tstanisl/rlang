@@ -96,9 +96,10 @@ def parseStatement():
 		pp.Suppress(ELSE) + if_action, default = None)
 
 	assume_stmt = pp.Keyword('assume') + expr + SCOLON
+	assert_stmt = pp.Keyword('assert') + expr + SCOLON
 
-	stmt << (var_decl ^ return_stmt ^ if_stmt ^ assume_stmt ^\
-		assign_stmt ^ block_stmt)
+	stmt << (var_decl ^ return_stmt ^ if_stmt ^ assume_stmt\
+		^ assert_stmt ^ assign_stmt ^ block_stmt)
 	return stmt
 
 def parseProgram():
