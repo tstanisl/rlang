@@ -43,7 +43,12 @@ def parseExpression():
 		for i in range(1, len(t), 2):
 			ret = [t[i], ret, t[i + 1]]
 		return [ret]
-	comparison_ast = lambda t: [['<>'] + t[0].asList()]
+	def comparison_ast(t):
+		t = t[0].asList()
+		if len(t) == 3:
+			return [[t[1], t[0], t[2]]]
+		return [['<>'] + t]
+
 	arith_expr = pp.infixNotation(top_expr, [ \
 		(pp.oneOf('+ - !'), 1, pp.opAssoc.RIGHT,), \
 		(pp.oneOf('/ % *'), 2, pp.opAssoc.LEFT, make_ast), \
