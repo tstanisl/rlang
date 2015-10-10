@@ -73,14 +73,20 @@ def parseStatement():
 	EQ = pp.Suppress('=')
 	VAR = pp.Keyword('var')
 
+	stmt = pp.Forward();
+
 	var_decl = VAR + type_spec + ident + \
 		pp.Optional(EQ + expr, default = None) + SCOLON
 
 	assign_stmt = ident + EQ + expr + SCOLON
 	assign_stmt.setParseAction(lambda t: ['='] + t.asList())
 
-	return var_decl ^ assign_stmt
+	LBRA = pp.Literal("{")
+	RBRA = pp.Literal("}")
+	block_stmt = LBRA + pp.ZeroOrMore(pp.Group(stmt)) + pp.Suppress(RBRA)
 
+	stmt << (var_decl ^ assign_stmt ^ block_stmt)
+	return stmt
 
 def parseProgram():
 	import pyparsing as pp
