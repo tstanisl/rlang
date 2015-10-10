@@ -105,7 +105,8 @@ def parseStatement():
 def parseProgram():
 	import pyparsing as pp
 
-	program = pp.Empty()
+	stmt = parseStatement()
+	program = pp.ZeroOrMore(pp.Group(stmt))
 
 	comment = pp.cppStyleComment()
 	program.ignore(comment)
@@ -120,7 +121,8 @@ def main():
 		in_file = open(sys.argv[1], "r")
 
 	#grammar = parseExpression()
-	grammar = parseStatement()
+	#grammar = parseStatement()
+	grammar = parseProgram()
 	ast = grammar.parseFile(in_file, True)
 
 	print(ast)
