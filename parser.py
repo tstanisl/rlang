@@ -87,7 +87,15 @@ def parseStatement():
 
 	return_stmt = pp.Keyword('return') + SCOLON
 
-	stmt << (var_decl ^ return_stmt ^ assign_stmt ^ block_stmt)
+	if_action = pp.Group(pp.Suppress(LBRA) + pp.ZeroOrMore(pp.Group(stmt))\
+		+ pp.Suppress(RBRA))
+
+	IF = pp.Keyword('if')
+	ELSE = pp.Keyword('else')
+	if_stmt = IF + expr + if_action + pp.Optional(
+		pp.Suppress(ELSE) + if_action, default = None)
+
+	stmt << (var_decl ^ return_stmt ^ if_stmt ^ assign_stmt ^ block_stmt)
 	return stmt
 
 def parseProgram():
