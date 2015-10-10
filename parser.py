@@ -85,7 +85,9 @@ def parseStatement():
 	RBRA = pp.Literal("}")
 	block_stmt = LBRA + pp.ZeroOrMore(pp.Group(stmt)) + pp.Suppress(RBRA)
 
-	stmt << (var_decl ^ assign_stmt ^ block_stmt)
+	return_stmt = pp.Keyword('return') + SCOLON
+
+	stmt << (var_decl ^ return_stmt ^ assign_stmt ^ block_stmt)
 	return stmt
 
 def parseProgram():
