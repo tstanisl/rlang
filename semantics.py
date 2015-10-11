@@ -22,11 +22,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 from parser import *
+import string
 
 class context:
 	variables = set()
 	errors = []
 	varstack = []
+	def check_expression(self, expr):
+		if isinstance(expr, int):
+			pass
+		elif expr == '<>':
+			for i in range(1, len(expr), 2):
+				self.check_expression(expr[i])
+		elif expr[0] in string.ascii_letters:
+			if expr not in self.variables:
+				self.errors.append("'{}' is undefined"\
+					.format(expr))
+		else: # operator
+			for i in range(1, len(expr)):
+				self.check_expression(expr[i])
+
 	def check_sequence(self, seq):
 		frame = len(self.varstack)
 		for stmt in seq:
