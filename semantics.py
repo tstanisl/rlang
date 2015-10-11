@@ -75,6 +75,11 @@ class context:
 			self.check_sequence(stmt[2:])
 		elif op == 'assert' or op == 'assume':
 			self.check_expression(stmt[2])
+		elif op == 'if':
+			self.check_expression(stmt[2])
+			self.check_sequence(stmt[3])
+			if stmt[4]:
+				self.check_sequence(stmt[4])
 
 def main():
 	import sys
