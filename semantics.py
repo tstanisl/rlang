@@ -56,6 +56,8 @@ class context:
 		op = stmt[0]
 		where = stmt[1]
 		if op == 'var':
+			if stmt[4]:
+				self.check_expression(stmt[4])
 			name = stmt[3]
 			if name in self.variables:
 				self.errors.append("{}: '{}' is redefined"\
@@ -68,6 +70,7 @@ class context:
 			if name not in self.variables:
 				self.errors.append("{}: '{}' is undefined"\
 					.format(where, name))
+			self.check_expression(stmt[3])
 		elif op == '{':
 			self.check_sequence(stmt[2:])
 
