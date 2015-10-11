@@ -23,6 +23,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from semantics import *
 
+class Verifier:
+	pipe = None
+	int_size = 64
+	errors = []
+	varstack = []
+	var_age = dict()
+	var_sort = dict()
+	tmp_sort = []
+
+	def __init__(self, int_size):
+		self.int_size = int_size
+
+	def emit(self, smt2):
+		print(smt2 + '\n')
+
+	def verify_sequence(self, seq):
+		for stmt in seq:
+			verify_statement(stmt)
+
+	def verify_statement(self, stmt):
+		op = stmt[0]
+		where = str(stmt[1])
+
+
 def main():
 	import sys
 
@@ -38,11 +62,11 @@ def main():
 
 	ctx = semantic_context()
 	ctx.check_sequence(ast)
-	if len(ctx.errors) == 0:
-		print("Program semanticaly valid");
+	if len(ctx.errors) > 0:
+		for err in ctx.errors:
+			print("Error: ", err)
 		return
-	for err in ctx.errors:
-		print("Error: ", err)
+	print("Program semanticaly valid");
 
 if __name__ == "__main__":
 	main()
