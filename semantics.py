@@ -85,6 +85,7 @@ def main():
 	#grammar = parseStatement()
 	grammar = parseProgram()
 	ast = grammar.parseFile(in_file, True)
+	print(ast)
 
 	ctx = context()
 	ctx.check_sequence(ast)
