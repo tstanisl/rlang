@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from parser import *
 import string
 
-class context:
+class semantic_context:
 	variables = set()
 	errors = []
 	varstack = []
@@ -94,7 +94,7 @@ def main():
 	ast = grammar.parseFile(in_file, True)
 	print(ast)
 
-	ctx = context()
+	ctx = semantic_context()
 	ctx.check_sequence(ast)
 	if len(ctx.errors) == 0:
 		print("Program semanticaly valid");
