@@ -26,9 +26,16 @@ from parser import *
 class context:
 	variables = set()
 	errors = []
+	varstack = []
 	def check_sequence(self, seq):
+		frame = len(self.varstack)
 		for stmt in seq:
 			self.check_statement(stmt)
+		# remove variables added in current sequence
+		for idx in range(frame, len(self.varstack)):
+			var = self.varstack[idx]
+			self.variables.remove(var)
+		del self.varstack[frame:]
 
 	def check_statement(self, stmt):
 		op = stmt[0]
@@ -40,11 +47,14 @@ class context:
 					.format(where, name))
 			else:
 				self.variables.add(name)
+				self.varstack.append(name)
 		elif op == '=':
 			name = stmt[2]
 			if name not in self.variables:
 				self.errors.append("{}: '{}' is undefined"\
 					.format(where, name))
+		elif op == '{':
+			self.check_sequence(stmt[2:])
 
 def main():
 	import sys
