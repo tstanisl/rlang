@@ -23,6 +23,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from parser import *
 
+class context:
+	variables = set()
+	errors = []
+	def check_sequence(self, seq):
+		for stmt in seq:
+			self.check_statement(stmt)
+
+	def check_statement(self, stmt):
+		op = stmt[0]
+		where = stmt[1]
+		if op == 'var':
+			name = stmt[3]
+			if name in self.variables:
+				self.errors.append("{}: '{}' is redefined"\
+					.format(where, name))
+			else:
+				self.variables.add(name)
+
 def main():
 	import sys
 
@@ -35,7 +53,13 @@ def main():
 	grammar = parseProgram()
 	ast = grammar.parseFile(in_file, True)
 
-	print(ast)
+	ctx = context()
+	ctx.check_sequence(ast)
+	if len(ctx.errors) == 0:
+		print("Program semanticaly valid");
+		return
+	for err in ctx.errors:
+		print("Error: ", err)
 
 if __name__ == "__main__":
 	main()
