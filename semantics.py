@@ -28,6 +28,9 @@ class context:
 	variables = set()
 	errors = []
 	varstack = []
+	where = ""
+	def error(self, errstr):
+		self.errors.append(self.where + ': ' + errstr)
 	def check_expression(self, expr):
 		if isinstance(expr, int):
 			pass
@@ -36,8 +39,7 @@ class context:
 				self.check_expression(expr[i])
 		elif expr[0] in string.ascii_letters:
 			if expr not in self.variables:
-				self.errors.append("'{}' is undefined"\
-					.format(expr))
+				self.error("'{}' is undefined".format(expr))
 		else: # operator
 			for i in range(1, len(expr)):
 				self.check_expression(expr[i])
@@ -54,22 +56,20 @@ class context:
 
 	def check_statement(self, stmt):
 		op = stmt[0]
-		where = stmt[1]
+		self.where = str(stmt[1])
 		if op == 'var':
 			if stmt[4]:
 				self.check_expression(stmt[4])
 			name = stmt[3]
 			if name in self.variables:
-				self.errors.append("{}: '{}' is redefined"\
-					.format(where, name))
+				self.error("'{}' is redefined".format(name))
 			else:
 				self.variables.add(name)
 				self.varstack.append(name)
 		elif op == '=':
 			name = stmt[2]
 			if name not in self.variables:
-				self.errors.append("{}: '{}' is undefined"\
-					.format(where, name))
+				self.error("'{}' is undefined".format(name))
 			self.check_expression(stmt[3])
 		elif op == '{':
 			self.check_sequence(stmt[2:])
