@@ -65,6 +65,7 @@ def parseExpression():
 
 def parseStatement():
 	import pyparsing as pp
+
 	pp.ParserElement.enablePackrat()
 	ident = pp.Word(pp.alphas, pp.alphanums + '_')
 
@@ -105,6 +106,9 @@ def parseStatement():
 
 	stmt << (var_decl ^ return_stmt ^ if_stmt ^ assume_stmt\
 		^ assert_stmt ^ assign_stmt ^ block_stmt)
+
+	mark_line = lambda s,l,t: t.insert(1, pp.lineno(l, s))
+	stmt.setParseAction(mark_line)
 	return stmt
 
 def parseProgram():
