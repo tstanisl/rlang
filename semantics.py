@@ -40,6 +40,11 @@ class context:
 					.format(where, name))
 			else:
 				self.variables.add(name)
+		elif op == '=':
+			name = stmt[2]
+			if name not in self.variables:
+				self.errors.append("{}: '{}' is undefined"\
+					.format(where, name))
 
 def main():
 	import sys
